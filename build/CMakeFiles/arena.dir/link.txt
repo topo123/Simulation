@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libarena.a CMakeFiles/arena.dir/src/arenas/Arena.cpp.o CMakeFiles/arena.dir/src/arenas/PoolArena.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib libarena.a

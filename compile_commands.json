@@ -1,0 +1,50 @@
+[
+{
+  "directory": "/Users/rose/C++/Simulation/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/rose/C++/Simulation/./glad/include -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/glad.dir/glad/src/glad.c.o -c /Users/rose/C++/Simulation/glad/src/glad.c",
+  "file": "/Users/rose/C++/Simulation/glad/src/glad.c",
+  "output": "CMakeFiles/glad.dir/glad/src/glad.c.o"
+},
+{
+  "directory": "/Users/rose/C++/Simulation/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/arena.dir/src/arenas/Arena.cpp.o -c /Users/rose/C++/Simulation/src/arenas/Arena.cpp",
+  "file": "/Users/rose/C++/Simulation/src/arenas/Arena.cpp",
+  "output": "CMakeFiles/arena.dir/src/arenas/Arena.cpp.o"
+},
+{
+  "directory": "/Users/rose/C++/Simulation/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/arena.dir/src/arenas/PoolArena.cpp.o -c /Users/rose/C++/Simulation/src/arenas/PoolArena.cpp",
+  "file": "/Users/rose/C++/Simulation/src/arenas/PoolArena.cpp",
+  "output": "CMakeFiles/arena.dir/src/arenas/PoolArena.cpp.o"
+},
+{
+  "directory": "/Users/rose/C++/Simulation/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/material.dir/src/game/Material.cpp.o -c /Users/rose/C++/Simulation/src/game/Material.cpp",
+  "file": "/Users/rose/C++/Simulation/src/game/Material.cpp",
+  "output": "CMakeFiles/material.dir/src/game/Material.cpp.o"
+},
+{
+  "directory": "/Users/rose/C++/Simulation/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/render.dir/src/game/Renderer.cpp.o -c /Users/rose/C++/Simulation/src/game/Renderer.cpp",
+  "file": "/Users/rose/C++/Simulation/src/game/Renderer.cpp",
+  "output": "CMakeFiles/render.dir/src/game/Renderer.cpp.o"
+},
+{
+  "directory": "/Users/rose/C++/Simulation/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/updater.dir/src/game/Updater.cpp.o -c /Users/rose/C++/Simulation/src/game/Updater.cpp",
+  "file": "/Users/rose/C++/Simulation/src/game/Updater.cpp",
+  "output": "CMakeFiles/updater.dir/src/game/Updater.cpp.o"
+},
+{
+  "directory": "/Users/rose/C++/Simulation/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/utils.dir/src/shaders/shader_util.cpp.o -c /Users/rose/C++/Simulation/src/shaders/shader_util.cpp",
+  "file": "/Users/rose/C++/Simulation/src/shaders/shader_util.cpp",
+  "output": "CMakeFiles/utils.dir/src/shaders/shader_util.cpp.o"
+},
+{
+  "directory": "/Users/rose/C++/Simulation/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include -isystem /usr/local/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/main.dir/src/game/main.cpp.o -c /Users/rose/C++/Simulation/src/game/main.cpp",
+  "file": "/Users/rose/C++/Simulation/src/game/main.cpp",
+  "output": "CMakeFiles/main.dir/src/game/main.cpp.o"
+}
+]
