@@ -1,1 +1,1 @@
-/Library/Developer/CommandLineTools/usr/bin/c++  -fsanitize=address -g -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/main.dir/src/game/main.cpp.o -o main  -Wl,-rpath,/usr/local/lib libutils.a /usr/local/lib/libglfw.3.4.dylib libglad.a libmaterial.a librender.a libupdater.a libarena.a
+clang++  -fsanitize=address -g CMakeFiles/main.dir/src/game/main.cpp.o -o main  libworld.a librender.a libarena.a libglad.a glfw-3.4/src/libglfw3.a /usr/lib/x86_64-linux-gnu/librt.a -lm -ldl

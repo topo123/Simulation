@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libupdater.a CMakeFiles/updater.dir/src/game/Updater.cpp.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib libupdater.a

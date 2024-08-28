@@ -1,2 +1,2 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc librender.a CMakeFiles/render.dir/src/game/Renderer.cpp.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib librender.a
+/usr/bin/ar qc librender.a CMakeFiles/render.dir/src/game/Renderer.cpp.o CMakeFiles/render.dir/src/shaders/shader_util.cpp.o
+/usr/bin/ranlib librender.a

@@ -1,9 +1,11 @@
+#include <Shader.hpp>
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "Material.hpp"
-#include "Renderer.hpp"
-#include "Updater.hpp"
+#include <Material.hpp>
+#include <PoolArena.hpp>
+#include <World.hpp>
+
 
 double mouse_x, mouse_y;
 bool mousePressed = false;
@@ -49,63 +51,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	}
 }
 
-void spawn_materials(int center_x, int center_y, int width, int height, MaterialState& mat_state, PoolArena* arena, std::vector<std::vector<Material*>>& grid)
-{
 
-	if(width % 2 == 0 || height % 2 == 0)
-	{
-		return;
-	}
-
-	if(center_x < 0 || center_x > 800 || center_y < 0 || center_y > 600)
-	{
-		return;
-	}
-
-	int num_cols = width;
-	int num_rows = height;
-
-	int half_x = width/2;
-	int half_y = height/2;
-
-	int lX = center_x - half_x;
-	int rX = center_x + half_x;
-	int tY = center_y - half_y;
-	int bY = center_y + half_y;
-
-	if(lX < 0)
-	{
-		num_cols += lX;
-	}
-	if(rX > 800)
-	{
-		num_cols -= rX - 800;
-	}
-	if(tY < 0)
-	{
-		num_rows += tY;
-	}
-	if(bY > 600)
-	{
-		num_rows -= bY - 600 ;
-	}
-
-	assert(num_rows > 0 && num_cols > 0);
-
-	int prev_x = rX;
-
-	for(size_t i = 0; i < num_rows; i ++)
-	{
-		for(size_t j = 0; j < num_cols; j ++)
-		{
-			create_material(material_type, &mat_state, arena, grid,  glm::vec2(rX, bY));
-			rX --;
-		}
-		rX = prev_x;
-		bY --;
-	}
-
-}
 
 int init_window(GLFWwindow** window)
 {
@@ -119,7 +65,6 @@ int init_window(GLFWwindow** window)
 #endif
 
 	*window = glfwCreateWindow(800, 600, "LearnOpenGl", NULL, NULL);
-	assert(window != NULL);
 
 	glfwMakeContextCurrent(*window);
 
@@ -143,11 +88,11 @@ void game_loop()
 	init_window(&window);
 
 	PoolArena* arena = init_pool(800 * 600, sizeof(Material));
-	Renderer render;
-	render.initRenderData();
+	World world;
+	world.init_world(80, 60, 800, 600);
 
 
-	const unsigned int UPS = 1;
+	const unsigned int UPS = 120;
 	const float UPS_SLICE = 1.0f/UPS;
 	const unsigned int max_updates = 10;
 	const unsigned int MAX_FRAME_SKIPS = 10;
@@ -157,8 +102,6 @@ void game_loop()
 	double elapsed_time;
 	double time_accumulator = 0.0f;
 
-	std::vector<std::vector<Material*>> grid;
-	grid.resize(600, std::vector<Material*>(800, nullptr));
 
 
 
@@ -169,7 +112,8 @@ void game_loop()
 	{
 		if(mousePressed)
 		{
-			spawn_materials((int)mouse_x, (int)mouse_y, 101, 101, mat_state, arena, grid);
+			std::cout << "Creating material" << '\n';
+			world.create_materials(mouse_x, mouse_y, 19,  19,  material_type, arena);
 		}
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -180,9 +124,12 @@ void game_loop()
 
 		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS)
 		{
+			world.update_world();
+			time_accumulator -= UPS_SLICE;
 			frames_skip ++;
 		}
 
+		world.draw_world();
 		frames_skip = 0;
 		glfwSwapBuffers(window);
 		glfwPollEvents();

@@ -9,7 +9,13 @@ PoolArena* init_pool(size_t num_blocks, size_t block_size)
 	PoolArena* arena = new PoolArena();
 	arena->block_size = block_size;
 	arena->arena_size = num_blocks * block_size;
-	arena->arena_ptr = mmap(nullptr, arena->arena_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0); 
+#ifdef WIN32
+	arena->arena_ptr = VirtualAlloc(NULL, arena->arena_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE); 
+#endif
+
+#ifdef linux
+	arena->arena_ptr = static_cast<unsigned char*>(mmap(NULL, arena->arena_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+#endif
 	return arena;
 }
 

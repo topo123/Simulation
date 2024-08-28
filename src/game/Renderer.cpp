@@ -1,23 +1,25 @@
-#include <cassert>
+#include <cassert> 
+#include <World.hpp>
 #include <iostream>
 #include <glad/glad.h>
 #include <Renderer.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <vector>
+#include <Shader.hpp>
 
 
 void Renderer::compile_shaders()
 {
+	std::cout << "Shader compilation broken" << '\n';
 	arena = init_arena();
 	shader = get_shader("src/shaders/vertex.vert", "src/shaders/fragment.frag", arena);
 
-	print_shader(shader->vertex_shader);
-	print_shader(shader->frag_shader);
 
 	unsigned int vShader = glCreateShader(GL_VERTEX_SHADER);
+	std::cout << "Error here" << '\n';
 	glShaderSource(vShader, 1, &(shader->vertex_shader), NULL);
+	std::cout << "Not reached" << '\n';
 	glCompileShader(vShader);
 
 	int success;
@@ -109,13 +111,13 @@ void Renderer::initRenderData()
 }
 
 
-void Renderer::render(float tex_offset, const glm::vec2 pos, glm::vec2 size)
+void Renderer::render(float tex_offset, std::pair<uint16_t, uint16_t> pos, std::pair<uint16_t, uint16_t> size)
 {
 	glUseProgram(shader_program);
 	glm::mat4 model = glm::mat4(1.0f);
 
-	model = glm::translate(model, glm::vec3(pos, 0.0f));
-	model = glm::scale(model, glm::vec3(size, 1.0f));
+	model = glm::translate(model, glm::vec3(pos.first, pos.second, 0.0f));
+	model = glm::scale(model, glm::vec3(size.first, size.second, 1.0f));
 
 	int matrix = glGetUniformLocation(shader_program, "model");
 	assert(matrix != -1);
@@ -135,20 +137,3 @@ void Renderer::render(float tex_offset, const glm::vec2 pos, glm::vec2 size)
 }
 
 
-void draw_materials(Renderer& drawer, MaterialState* state)
-{
-	glm::vec2 px_size(1.0f, 1.0f);
-	const std::vector<Material*>& active = state->active_materials;
-	const std::set<Material*>& inactive = state->inactive_materials;
-	for(size_t i = 0; i < active.size(); i ++)
-	{
-		Material* mat = active[i];
-		drawer.render(mat->tex_offset, mat->position, px_size); 
-	}
-
-	for(auto it = inactive.begin(); it != inactive.end(); it ++)
-	{
-		Material* mat = (*it);
-		drawer.render(mat->tex_offset, mat->position, px_size); 
-	}
-}

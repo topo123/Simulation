@@ -1,11 +1,9 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
 #include <Shader.hpp>
 #include <Arena.hpp>
-#include <GameState.hpp>
+#include <cstdint>
 
 class Renderer
 {
@@ -19,9 +17,8 @@ class Renderer
 
 public:
 	void initRenderData();
-	void render(float tex_offset, glm::vec2 pos, glm::vec2 size);
+	void render(float tex_offset, std::pair<uint16_t, uint16_t> pos, std::pair<uint16_t, uint16_t> size);
 };
 
-void draw_materials(Renderer& drawer, MaterialState* state);
 
 #endif

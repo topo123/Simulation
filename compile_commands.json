@@ -1,50 +1,206 @@
 [
 {
-  "directory": "/Users/rose/C++/Simulation/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I/Users/rose/C++/Simulation/./glad/include -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/glad.dir/glad/src/glad.c.o -c /Users/rose/C++/Simulation/glad/src/glad.c",
-  "file": "/Users/rose/C++/Simulation/glad/src/glad.c",
+  "directory": "/home/peter_a/CPP Projects/Simulation/build",
+  "command": "/usr/bin/cc -DIGNORE_SANITIZER -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\"  -o CMakeFiles/glad.dir/glad/src/glad.c.o -c \"/home/peter_a/CPP Projects/Simulation/glad/src/glad.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glad/src/glad.c",
   "output": "CMakeFiles/glad.dir/glad/src/glad.c.o"
 },
 {
-  "directory": "/Users/rose/C++/Simulation/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/arena.dir/src/arenas/Arena.cpp.o -c /Users/rose/C++/Simulation/src/arenas/Arena.cpp",
-  "file": "/Users/rose/C++/Simulation/src/arenas/Arena.cpp",
+  "directory": "/home/peter_a/CPP Projects/Simulation/build",
+  "command": "clang++ -DIGNORE_SANITIZER -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/include\"  -fsanitize=memory -fno-omit-frame-pointer -g -std=gnu++17 -o CMakeFiles/arena.dir/src/arenas/Arena.cpp.o -c \"/home/peter_a/CPP Projects/Simulation/src/arenas/Arena.cpp\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/src/arenas/Arena.cpp",
   "output": "CMakeFiles/arena.dir/src/arenas/Arena.cpp.o"
 },
 {
-  "directory": "/Users/rose/C++/Simulation/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/arena.dir/src/arenas/PoolArena.cpp.o -c /Users/rose/C++/Simulation/src/arenas/PoolArena.cpp",
-  "file": "/Users/rose/C++/Simulation/src/arenas/PoolArena.cpp",
+  "directory": "/home/peter_a/CPP Projects/Simulation/build",
+  "command": "clang++ -DIGNORE_SANITIZER -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/include\"  -fsanitize=memory -fno-omit-frame-pointer -g -std=gnu++17 -o CMakeFiles/arena.dir/src/arenas/PoolArena.cpp.o -c \"/home/peter_a/CPP Projects/Simulation/src/arenas/PoolArena.cpp\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/src/arenas/PoolArena.cpp",
   "output": "CMakeFiles/arena.dir/src/arenas/PoolArena.cpp.o"
 },
 {
-  "directory": "/Users/rose/C++/Simulation/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/material.dir/src/game/Material.cpp.o -c /Users/rose/C++/Simulation/src/game/Material.cpp",
-  "file": "/Users/rose/C++/Simulation/src/game/Material.cpp",
-  "output": "CMakeFiles/material.dir/src/game/Material.cpp.o"
+  "directory": "/home/peter_a/CPP Projects/Simulation/build",
+  "command": "clang++ -DIGNORE_SANITIZER -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/include\"  -fsanitize=memory -fno-omit-frame-pointer -g -std=gnu++17 -o CMakeFiles/world.dir/src/game/World.cpp.o -c \"/home/peter_a/CPP Projects/Simulation/src/game/World.cpp\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/src/game/World.cpp",
+  "output": "CMakeFiles/world.dir/src/game/World.cpp.o"
 },
 {
-  "directory": "/Users/rose/C++/Simulation/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/render.dir/src/game/Renderer.cpp.o -c /Users/rose/C++/Simulation/src/game/Renderer.cpp",
-  "file": "/Users/rose/C++/Simulation/src/game/Renderer.cpp",
+  "directory": "/home/peter_a/CPP Projects/Simulation/build",
+  "command": "clang++ -DIGNORE_SANITIZER -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/include\"  -fsanitize=memory -fno-omit-frame-pointer -g -std=gnu++17 -o CMakeFiles/world.dir/src/game/ChunkHandler.cpp.o -c \"/home/peter_a/CPP Projects/Simulation/src/game/ChunkHandler.cpp\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/src/game/ChunkHandler.cpp",
+  "output": "CMakeFiles/world.dir/src/game/ChunkHandler.cpp.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build",
+  "command": "clang++ -DIGNORE_SANITIZER -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/include\"  -fsanitize=memory -fno-omit-frame-pointer -g -std=gnu++17 -o CMakeFiles/render.dir/src/game/Renderer.cpp.o -c \"/home/peter_a/CPP Projects/Simulation/src/game/Renderer.cpp\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/src/game/Renderer.cpp",
   "output": "CMakeFiles/render.dir/src/game/Renderer.cpp.o"
 },
 {
-  "directory": "/Users/rose/C++/Simulation/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/updater.dir/src/game/Updater.cpp.o -c /Users/rose/C++/Simulation/src/game/Updater.cpp",
-  "file": "/Users/rose/C++/Simulation/src/game/Updater.cpp",
-  "output": "CMakeFiles/updater.dir/src/game/Updater.cpp.o"
+  "directory": "/home/peter_a/CPP Projects/Simulation/build",
+  "command": "clang++ -DIGNORE_SANITIZER -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/include\"  -fsanitize=memory -fno-omit-frame-pointer -g -std=gnu++17 -o CMakeFiles/render.dir/src/shaders/shader_util.cpp.o -c \"/home/peter_a/CPP Projects/Simulation/src/shaders/shader_util.cpp\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/src/shaders/shader_util.cpp",
+  "output": "CMakeFiles/render.dir/src/shaders/shader_util.cpp.o"
 },
 {
-  "directory": "/Users/rose/C++/Simulation/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/utils.dir/src/shaders/shader_util.cpp.o -c /Users/rose/C++/Simulation/src/shaders/shader_util.cpp",
-  "file": "/Users/rose/C++/Simulation/src/shaders/shader_util.cpp",
-  "output": "CMakeFiles/utils.dir/src/shaders/shader_util.cpp.o"
-},
-{
-  "directory": "/Users/rose/C++/Simulation/build",
-  "command": "/Library/Developer/CommandLineTools/usr/bin/c++  -I/Users/rose/C++/Simulation/./glad/include -I/Users/rose/C++/Simulation/include -isystem /usr/local/include  -fsanitize=address -g -g -std=gnu++17 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -o CMakeFiles/main.dir/src/game/main.cpp.o -c /Users/rose/C++/Simulation/src/game/main.cpp",
-  "file": "/Users/rose/C++/Simulation/src/game/main.cpp",
+  "directory": "/home/peter_a/CPP Projects/Simulation/build",
+  "command": "clang++ -DIGNORE_SANITIZER -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\"  -fsanitize=memory -fno-omit-frame-pointer -g -std=gnu++17 -fsanitize=memory -fsanitize-memory-track-origins=0 -o CMakeFiles/main.dir/src/game/main.cpp.o -c \"/home/peter_a/CPP Projects/Simulation/src/game/main.cpp\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/src/game/main.cpp",
   "output": "CMakeFiles/main.dir/src/game/main.cpp.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/context.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/context.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/context.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/context.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/init.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/init.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/init.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/init.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/input.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/input.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/input.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/input.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/monitor.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/monitor.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/monitor.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/monitor.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/platform.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/platform.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/platform.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/platform.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/vulkan.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/vulkan.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/vulkan.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/vulkan.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/window.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/window.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/window.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/window.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/egl_context.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/egl_context.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/egl_context.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/egl_context.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/osmesa_context.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/osmesa_context.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/osmesa_context.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/osmesa_context.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/null_init.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/null_init.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/null_init.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/null_init.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/null_monitor.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/null_monitor.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/null_monitor.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/null_monitor.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/null_window.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/null_window.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/null_window.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/null_window.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/null_joystick.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/null_joystick.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/null_joystick.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/null_joystick.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/posix_module.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/posix_module.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/posix_module.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/posix_module.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/posix_time.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/posix_time.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/posix_time.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/posix_time.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/posix_thread.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/posix_thread.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/posix_thread.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/posix_thread.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/x11_init.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/x11_init.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/x11_init.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/x11_init.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/x11_monitor.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/x11_monitor.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/x11_monitor.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/x11_monitor.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/x11_window.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/x11_window.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/x11_window.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/x11_window.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/xkb_unicode.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/xkb_unicode.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/xkb_unicode.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/xkb_unicode.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/glx_context.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/glx_context.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/glx_context.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/glx_context.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/wl_init.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/wl_init.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/wl_init.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/wl_init.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/wl_monitor.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/wl_monitor.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/wl_monitor.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/wl_monitor.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/wl_window.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/wl_window.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/wl_window.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/wl_window.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/linux_joystick.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/linux_joystick.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/linux_joystick.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/linux_joystick.c.o"
+},
+{
+  "directory": "/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src",
+  "command": "/usr/bin/cc -DHAVE_MEMFD_CREATE -DIGNORE_SANITIZER -D_DEFAULT_SOURCE -D_GLFW_WAYLAND -D_GLFW_X11 -I\"/home/peter_a/CPP Projects/Simulation/./glad/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/include\" -I\"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src\" -I\"/home/peter_a/CPP Projects/Simulation/build/glfw-3.4/src\" -std=c99 -fPIC -Wall -o CMakeFiles/glfw.dir/posix_poll.c.o -c \"/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/posix_poll.c\"",
+  "file": "/home/peter_a/CPP Projects/Simulation/glfw-3.4/src/posix_poll.c",
+  "output": "glfw-3.4/src/CMakeFiles/glfw.dir/posix_poll.c.o"
 }
 ]
