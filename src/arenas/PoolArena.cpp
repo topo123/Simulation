@@ -15,6 +15,7 @@ PoolArena* init_pool(size_t num_blocks, size_t block_size)
 
 #ifdef linux
 	arena->arena_ptr = static_cast<unsigned char*>(mmap(NULL, arena->arena_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+	assert(arena->arena_ptr != MAP_FAILED);
 #endif
 	return arena;
 }
@@ -58,8 +59,10 @@ int deallocate(PoolArena* arena, void* mem_block)
 
 int free_arena(PoolArena* arena)
 {
+#ifdef linux
 	int free_failure = munmap(arena->arena_ptr, arena->arena_size);
 	assert(free_failure == 0);
+#endif
 
 	FreeList* list = arena->list;
 	while(list != nullptr)

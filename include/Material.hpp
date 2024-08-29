@@ -12,6 +12,20 @@ enum Properties{
 	SIDE = 0b00000100
 };
 
+struct vector2
+{
+	int x {0};
+	int y {0};
+
+	bool operator<(const vector2& other) const {
+		if(x != other.x)
+		{
+			return x < other.x;
+		}
+		return y < other.y;
+	}
+};
+
 enum MatType
 {
 	NONE,
@@ -32,8 +46,8 @@ struct MatTexCoords
 struct Material
 {
 	float tex_offset;
-	std::pair<uint16_t, uint16_t> position;
-	std::pair<uint16_t, uint16_t> velocity;
+	vector2 position {0, 0};
+	vector2 velocity {0, 0};
 	MatType material = MatType::NONE;
 	Properties property = Properties::STATIC;
 };

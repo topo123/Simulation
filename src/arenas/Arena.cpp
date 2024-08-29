@@ -21,8 +21,10 @@ Arena* init_arena(size_t arena_size)
 
 int free_arena(Arena* arena)
 {
+#ifdef linux
 	int free_failure = munmap(arena->arena_ptr, arena->arena_size);
 	assert(free_failure == 0);
+#endif
 
 	if(free_failure == -1)
 	{

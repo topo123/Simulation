@@ -3,7 +3,7 @@
 
 #include <Shader.hpp>
 #include <Arena.hpp>
-#include <cstdint>
+#include <Material.hpp>
 
 class Renderer
 {
@@ -17,7 +17,7 @@ class Renderer
 
 public:
 	void initRenderData();
-	void render(float tex_offset, std::pair<uint16_t, uint16_t> pos, std::pair<uint16_t, uint16_t> size);
+	void render(float tex_offset, vector2* pos, vector2* size);
 };
 
 

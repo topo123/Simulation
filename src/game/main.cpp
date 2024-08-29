@@ -87,6 +87,7 @@ void game_loop()
 	GLFWwindow* window = nullptr;
 	init_window(&window);
 
+	std::cout << std::to_string(sizeof(Material)) << '\n';
 	PoolArena* arena = init_pool(800 * 600, sizeof(Material));
 	World world;
 	world.init_world(80, 60, 800, 600);

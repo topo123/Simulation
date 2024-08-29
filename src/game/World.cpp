@@ -1,8 +1,7 @@
 #include <World.hpp>
 #include <cassert>
-#include <iostream>
 
-void World::init_world(uint16_t cW, uint16_t cH, uint16_t wW, uint16_t wH)
+void World::init_world(int cW, int cH, int wW, int wH)
 {
 	world_width = wW;
 	world_height = wH;
@@ -11,7 +10,7 @@ void World::init_world(uint16_t cW, uint16_t cH, uint16_t wW, uint16_t wH)
 	handler.init_chunk_handler(cW, cH, wW, wH);
 }
 
-void World::create_materials(uint16_t center_x, uint16_t center_y, uint16_t width, uint16_t height, MatType type, PoolArena* arena)
+void World::create_materials(int center_x, int center_y, int width, int height, MatType type, PoolArena* arena)
 {
 
 	if(width % 2 == 0 || height % 2 == 0)
@@ -53,36 +52,38 @@ void World::create_materials(uint16_t center_x, uint16_t center_y, uint16_t widt
 	}
 
 	int prev_x = rX;
-	int index = 0;
 
-	Material** materials = new Material*[num_cols * num_rows];
-	for(size_t i = 0; i < num_rows; i ++)
+	std::vector<Material*> materials;
+	materials.resize(num_rows * num_cols, nullptr);
+
+	for(size_t i = 0; i < num_rows * num_cols; i ++)
 	{
-		for(size_t j = 0; j < num_cols; j ++)
+		materials[i] = static_cast<Material*>(allocate(arena));
+		vector2 pos;
+		pos.x = rX;
+		pos.y = bY;
+
+		set_material_properties(materials[i], type, &pos);
+		rX --;
+
+		if(rX == (rX - num_cols + 1))
 		{
-			materials[index] = static_cast<Material*>(allocate(arena));
-			set_material_properties(materials[index], type, std::make_pair(rX, bY));
-			rX --;
-			index ++;
+			rX = prev_x;
+			bY --;
 		}
-		rX = prev_x;
-		bY --;
 	}
 
-	for(size_t i = 0; i < num_cols * num_rows; i ++)
-	{
-		assert(materials[i] != nullptr);
-	}
-
-	handler.add_materials(materials, num_rows * num_cols, arena); 
+	handler.add_materials(materials, arena); 
 }
 
 
-void World::set_material_properties(Material* material, MatType type, std::pair<uint16_t, uint16_t> pos)
+void World::set_material_properties(Material* material, MatType type, vector2* pos)
 {
 	material->material = type;
-	material->position = pos;
-	material->velocity.second = 1;
+	material->position.x = pos->x;
+	material->position.y = pos->y;
+	material->velocity.x = 0;
+	material->velocity.y = 1;
 	if(type == WATER)
 	{
 		material->tex_offset = tex_coords.WATER;
@@ -99,6 +100,7 @@ void World::update_world()
 {
 	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
 	{
+		assert(handler.chunks.find(chunk->coords) != handler.chunks.end());
 		handler.update_chunk(chunk);
 	}
 }

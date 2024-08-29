@@ -111,13 +111,13 @@ void Renderer::initRenderData()
 }
 
 
-void Renderer::render(float tex_offset, std::pair<uint16_t, uint16_t> pos, std::pair<uint16_t, uint16_t> size)
+void Renderer::render(float tex_offset, vector2* pos, vector2* size)
 {
 	glUseProgram(shader_program);
 	glm::mat4 model = glm::mat4(1.0f);
 
-	model = glm::translate(model, glm::vec3(pos.first, pos.second, 0.0f));
-	model = glm::scale(model, glm::vec3(size.first, size.second, 1.0f));
+	model = glm::translate(model, glm::vec3(pos->x, pos->y, 0.0f));
+	model = glm::scale(model, glm::vec3(size->x, size->y, 1.0f));
 
 	int matrix = glGetUniformLocation(shader_program, "model");
 	assert(matrix != -1);
