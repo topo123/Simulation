@@ -98,10 +98,15 @@ void World::set_material_properties(Material* material, MatType type, vector2* p
 
 void World::update_world()
 {
-	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
+	for(size_t i = 0; i < handler.iter_chunks.size(); i ++)
 	{
+		ChunkHandler::Chunk* chunk = handler.iter_chunks[i];
 		assert(handler.chunks.find(chunk->coords) != handler.chunks.end());
 		handler.update_chunk(chunk);
+		if(chunk->num_materials == 0)
+		{
+			handler.iter_chunks.erase(handler.iter_chunks.begin() + i);
+		}
 	}
 }
 

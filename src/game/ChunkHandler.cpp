@@ -4,6 +4,11 @@
 #include <cstdint>
 #include <cassert>
 
+std::string ChunkHandler::print_pos(int x, int y)
+{
+	return "(" + std::to_string(x) + ", " + std::to_string(y) + ")"; 
+}
+
 ChunkHandler::Chunk* ChunkHandler::init_chunk(int mat_x, int mat_y)
 {
 	Chunk* new_chunk = new Chunk();
@@ -15,16 +20,18 @@ ChunkHandler::Chunk* ChunkHandler::init_chunk(int mat_x, int mat_y)
 	new_chunk->num_materials = 0;
 	iter_chunks.push_back(new_chunk);
 	chunks[new_chunk->coords] = new_chunk;
-	std::cout << "Chunk (" << std::to_string(new_chunk->coords.x) << ", " << std::to_string(new_chunk->coords.y) << ") created.\n";
+	//std::cout << "Chunk " << print_pos(new_chunk->coords.x, new_chunk->coords.y) << " created \n";
+	//std::fflush(stdout);
 	return new_chunk;
 }
 
-Material* ChunkHandler::get_material(size_t x, size_t y)
+bool ChunkHandler::in_world(int x, int y)
 {
-	if(x < 0 || x >= world_width || y < 0 || y >= world_height)
-	{
-		return nullptr;
-	}
+	return x >= 0 && x < world_width && y >= 0 && y < world_height;
+}
+
+Material* ChunkHandler::get_material(int x, int y)
+{
 
 	vector2 chunk_coords;
 	chunk_coords.x = x/chunk_width;
@@ -51,6 +58,9 @@ ChunkHandler::Chunk* ChunkHandler::move_material(Chunk* chunk, Material* materia
 	vector2 new_coords;
 	new_coords.x = new_pos->x/chunk_width;
 	new_coords.y = new_pos->y/chunk_height;
+
+	//std::cout << "Moving material " << print_pos(old_pos->x, old_pos->y) << " to " << print_pos(new_pos->x, new_pos->y) << ".\n";
+	//std::fflush(stdout);
 
 
 	if(chunks.find(new_coords) == chunks.end())
@@ -79,8 +89,8 @@ ChunkHandler::Chunk* ChunkHandler::move_material(Chunk* chunk, Material* materia
 		vector2 fail;
 		fail.x = chunk->coords.x;
 		fail.y = chunk->coords.y;
+		std::cout << "Moving material " << print_pos(material->position.x, material->position.y) << " to new chunk " << print_pos(fail.x, fail.y) << ".\n";
 		//assert(chunks.find(chunk->coords) != chunks.end());
-		std::cout << "Chunk coords not found: (" << std::to_string(fail.x) << ", " << std::to_string(fail.y) << ").\n";
 		chunk->materials[index(old_pos->x, old_pos->y)] = nullptr;
 		chunk->num_materials --;
 		new_chunk->num_materials ++;
@@ -96,14 +106,17 @@ ChunkHandler::Chunk* ChunkHandler::move_material(Chunk* chunk, Material* materia
 
 void ChunkHandler::update_down(Chunk* chunk, Material* material)
 {
+	//std::cout << "Moving material down " << print_pos(material->position.x, material->position.y) << " in Chunk " << print_pos(chunk->coords.x, chunk->coords.y) << '\n';
+
+
 	Material* check_material = get_material(material->position.x, material->position.y + 1);
-	if(check_material == nullptr)
+	if(check_material == nullptr && in_world(material->position.x, material->position.y + 1))
 	{
 		vector2 new_pos;
 		new_pos.x = material->position.x;
 		new_pos.y = material->position.y + 1;
-		Chunk* chunk = move_material(chunk, material, &material->position, &new_pos);
-		assert(chunk != nullptr);
+		Chunk* new_chunk = move_material(chunk, material, &material->position, &new_pos);
+		assert(new_chunk != nullptr);
 	}
 	else
 	{
@@ -117,6 +130,7 @@ void ChunkHandler::update_side(Chunk* chunk, Material* material)
 
 void ChunkHandler::update_side_down(Chunk* chunk, Material* material)
 {
+	//std::cout << "Moving material diagnolly " << print_pos(material->position.x, material->position.y) << " in Chunk " << print_pos(chunk->coords.x, chunk->coords.y) << '\n';
 	uint8_t direction = rand() % 2;
 	bool can_move = false;
 
@@ -124,27 +138,27 @@ void ChunkHandler::update_side_down(Chunk* chunk, Material* material)
 	{
 		bool left_clear = get_material(material->position.x - 1, material->position.y) == nullptr;
 		bool diag_left_clear = get_material(material->position.x - 1, material->position.y + 1) == nullptr;
-		can_move = left_clear && diag_left_clear;
+		can_move = left_clear && diag_left_clear && in_world(material->position.x - 1, material->position.y + 1);
 	}
 	else
 	{
 		bool right_clear = get_material(material->position.x + 1, material->position.y) == nullptr;
 		bool diag_right_clear = get_material(material->position.x + 1, material->position.y + 1) == nullptr;
-		can_move = right_clear && diag_right_clear;
+		can_move = right_clear && diag_right_clear && in_world(material->position.x + 1, material->position.y + 1);
 	}
 
 	if(!can_move && direction == 0)
 	{
 		bool right_clear = get_material(material->position.x + 1, material->position.y) == nullptr;
 		bool diag_right_clear = get_material(material->position.x + 1, material->position.y + 1) == nullptr;
-		can_move = right_clear && diag_right_clear;
+		can_move = right_clear && diag_right_clear && in_world(material->position.x + 1, material->position.y + 1);
 		direction = 1;
 	}
 	else if(!can_move && direction == 1)
 	{
 		bool left_clear = get_material(material->position.x - 1, material->position.y) == nullptr;
 		bool diag_left_clear = get_material(material->position.x - 1, material->position.y + 1) == nullptr;
-		can_move = left_clear && diag_left_clear;
+		can_move = left_clear && diag_left_clear && in_world(material->position.x - 1, material->position.y + 1);
 		direction = 0;
 	}
 
@@ -172,7 +186,8 @@ void ChunkHandler::update_side_down(Chunk* chunk, Material* material)
 
 void ChunkHandler::update_chunk(Chunk* chunk)
 {
-	std::cout << "Updating Chunk (" << std::to_string(chunk->coords.x) << ", " << std::to_string(chunk->coords.y) << ") created.\n";
+	//std::cout << "Updating Chunk " << print_pos(chunk->coords.x, chunk->coords.y) << ".\n";
+	//std::fflush(stdout);
 	assert(chunks.find(chunk->coords) != chunks.end());
 	size_t chunk_length = chunk_width * chunk_height;
 	const std::vector<Material*>& particles = chunk->materials;
@@ -198,6 +213,7 @@ void ChunkHandler::update_chunk(Chunk* chunk)
 			update_side(chunk, mat);
 		}
 	}
+
 }
 
 void ChunkHandler::init_chunk_handler(int cW, int cH, int wW, int wH)
@@ -217,6 +233,7 @@ void ChunkHandler::init_chunk_handler(int cW, int cH, int wW, int wH)
 	x_chunks = wW/cW;
 	y_chunks = wH/cH;
 	chunk_size = cW * cH;
+	std::freopen("log.txt", "w", stdout);
 }
 
 void ChunkHandler::add_materials(const std::vector<Material*>& material, PoolArena* arena)
@@ -236,19 +253,27 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material, PoolAre
 			Chunk* chunk = init_chunk(x, y);
 			assert(chunk != nullptr);
 			chunk->materials[index(x, y)] = mat;
+			//std::cout << "Adding material " <<  print_pos(x, y) << " to chunk " << print_pos(chunk_pos.x, chunk_pos.y) << '\n';
+			//std::fflush(stdout);
 			chunk->num_materials ++;
 		}
 		else if(chunks[chunk_pos]->materials[index(x, y)] == nullptr)
 		{
+			//std::cout << "Adding material " <<  print_pos(x, y) << " to chunk " << print_pos(chunk_pos.x, chunk_pos.y) << '\n';
+			//std::fflush(stdout);
 			chunks[chunk_pos]->materials[index(x, y)] = mat;
 			chunks[chunk_pos]->num_materials ++;
 		}
 		else
 		{
+			//std::cout << "Deallocating material in chunk " << print_pos(chunk_pos.x, chunk_pos.y) << '\n';
+			std::fflush(stdout);
 			int success = deallocate(arena, mat);
 			if(success == -1)
 			{
-				std::cout << "Deallocation failed" << '\n';
+				//std::cout << "Deallocation failed" << '\n';
+				std::fflush(stdout);
+				std::fflush(stdout);
 				assert(false);
 			}
 		}
@@ -274,6 +299,7 @@ void ChunkHandler::draw_chunk(Chunk* chunk, Renderer render)
 size_t ChunkHandler::index(int x, int y)
 {
 	size_t i = ((y % chunk_height) * chunk_width) + (x % chunk_width);
+	//std::cout << "Calculated index for " << print_pos(x, y) << " which is " << std::to_string(i) << ".\n";
 	assert(i >= 0 && i < chunk_width * chunk_height);
 	return ((y % chunk_height) * chunk_width) + (x % chunk_width);
 };

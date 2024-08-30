@@ -93,8 +93,8 @@ void game_loop()
 	world.init_world(80, 60, 800, 600);
 
 
-	const unsigned int UPS = 120;
-	const float UPS_SLICE = 1.0f/UPS;
+	const unsigned int UPS = 100;
+	const float UPS_SLICE = 1.0f;
 	const unsigned int max_updates = 10;
 	const unsigned int MAX_FRAME_SKIPS = 10;
 	unsigned int frames_skip = 0;
