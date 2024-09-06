@@ -1,3 +1,4 @@
+#include <iostream>
 #include <World.hpp>
 #include <cassert>
 
@@ -37,25 +38,31 @@ void World::create_materials(int center_x, int center_y, int width, int height, 
 	if(lX < 0)
 	{
 		num_cols += lX;
+		lX = 0;
 	}
-	if(rX > 800)
+	if(rX > world_width)
 	{
-		num_cols -= rX - 800;
+		num_cols -= rX - world_width;
+		rX = world_width - 1;
 	}
 	if(tY < 0)
 	{
 		num_rows += tY;
+		tY = 0;
 	}
-	if(bY > 600)
+	if(bY > world_height)
 	{
-		num_rows -= bY - 600 ;
+		num_rows -= bY - world_height;
+		bY = world_height - 1;
 	}
 
 	int prev_x = rX;
 
 	std::vector<Material*> materials;
 	materials.resize(num_rows * num_cols, nullptr);
+	std::cout << "Mouse pos: (" << std::to_string(center_x) << ", " << std::to_string(center_y) << ")\n";
 
+	int counter = 0;
 	for(size_t i = 0; i < num_rows * num_cols; i ++)
 	{
 		materials[i] = static_cast<Material*>(allocate(arena));
@@ -66,13 +73,18 @@ void World::create_materials(int center_x, int center_y, int width, int height, 
 		set_material_properties(materials[i], type, &pos);
 		rX --;
 
-		if(rX == (rX - num_cols + 1))
+		if(rX == lX - 1)
 		{
+			counter ++;
 			rX = prev_x;
 			bY --;
 		}
 	}
 
+	for(size_t i = 0; i < materials.size(); i ++)
+	{
+		assert(materials[i] != nullptr);
+	}
 	handler.add_materials(materials, arena); 
 }
 
@@ -103,9 +115,13 @@ void World::update_world()
 		ChunkHandler::Chunk* chunk = handler.iter_chunks[i];
 		assert(handler.chunks.find(chunk->coords) != handler.chunks.end());
 		handler.update_chunk(chunk);
+		//std::sort(chunk->moves.begin(), chunk->moves.end(), [](ChunkHandler::Move& a, ChunkHandler::Move& b){return a.old_pos.x < b.old_pos.x;});
+		handler.commit_changes(chunk);
 		if(chunk->num_materials == 0)
 		{
 			handler.iter_chunks.erase(handler.iter_chunks.begin() + i);
+			handler.chunks.erase(chunk->coords);
+			delete chunk;
 		}
 	}
 }

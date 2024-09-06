@@ -1,7 +1,6 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
-#include <cstdint>
-#include <utility>
+#include <functional>
 
 #define NUM_MATERIALS 2.0f
 
@@ -24,6 +23,26 @@ struct vector2
 		}
 		return y < other.y;
 	}
+
+	vector2& operator=(const vector2& other)
+	{
+		x = other.x;
+		y = other.y;
+		return *this;
+	}
+
+	bool operator==(const vector2& other) const
+	{
+		return other.x == x && other.y == y;
+	}
+};
+
+
+struct vector_hash
+{
+	std::size_t operator()(const vector2& vec) const {
+		return (std::hash<int>()(vec.x)) ^ (std::hash<int>()(vec.y));
+	}
 };
 
 enum MatType
@@ -45,6 +64,7 @@ struct MatTexCoords
 
 struct Material
 {
+	bool updated = true;
 	float tex_offset;
 	vector2 position {0, 0};
 	vector2 velocity {0, 0};

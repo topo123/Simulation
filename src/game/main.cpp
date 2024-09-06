@@ -1,4 +1,5 @@
 #include <Shader.hpp>
+#include <cassert>
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -51,13 +52,20 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	}
 }
 
+void glfwErrorCallback(int error, const char* description) {
+	std::cout << "GLFW Error (" << error << "): " << description << '\n';
+}
+
 
 
 int init_window(GLFWwindow** window)
 {
+	glfwSetErrorCallback(glfwErrorCallback);
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -65,12 +73,27 @@ int init_window(GLFWwindow** window)
 #endif
 
 	*window = glfwCreateWindow(800, 600, "LearnOpenGl", NULL, NULL);
+	if(window == NULL)
+	{
+		std::cout << "Failed to created window\n";
+		glfwTerminate();
+		return -1;
+	}
 
 	glfwMakeContextCurrent(*window);
+	if(glfwGetCurrentContext() == NULL)
+	{
+		std::cout << "No current context\n";
+	}
 
 	if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD\n";
+		const char* description;
+		int code = glfwGetError(&description);
+		if (description)
+			std::cout << "GLFW error code: " << code << ", description: " << description << '\n';
+		glfwTerminate();
 		return -1;
 	}
 
@@ -85,7 +108,8 @@ int init_window(GLFWwindow** window)
 void game_loop()
 {
 	GLFWwindow* window = nullptr;
-	init_window(&window);
+	int success = init_window(&window);
+	assert(success == 0);
 
 	std::cout << std::to_string(sizeof(Material)) << '\n';
 	PoolArena* arena = init_pool(800 * 600, sizeof(Material));
@@ -93,31 +117,27 @@ void game_loop()
 	world.init_world(80, 60, 800, 600);
 
 
-	const unsigned int UPS = 100;
-	const float UPS_SLICE = 1.0f;
+	const unsigned int UPS = 200;
+	const float UPS_SLICE = 1.0f/UPS;
 	const unsigned int max_updates = 10;
 	const unsigned int MAX_FRAME_SKIPS = 10;
 	unsigned int frames_skip = 0;
 
-	double nowTime = glfwGetTime();
 	double elapsed_time;
 	double time_accumulator = 0.0f;
+	int updates = 0;
 
+	int frames = 0;
+	double frame_accumulator = 0;
 
-
-
-
-
+	double nowTime = glfwGetTime();
 
 	while(!glfwWindowShouldClose(window))
 	{
 		if(mousePressed)
 		{
-			std::cout << "Creating material" << '\n';
-			world.create_materials(mouse_x, mouse_y, 19,  19,  material_type, arena);
+			world.create_materials(mouse_x, mouse_y, 11,  11,  material_type, arena);
 		}
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
 
 		elapsed_time = glfwGetTime() - nowTime;
 		nowTime = glfwGetTime();
@@ -125,13 +145,16 @@ void game_loop()
 
 		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS)
 		{
+			std::cout << "UPS SLICE: " << std::to_string(UPS_SLICE) << " Accumulated time: " << std::to_string(time_accumulator) << '\n';
 			world.update_world();
 			time_accumulator -= UPS_SLICE;
 			frames_skip ++;
 		}
-
-		world.draw_world();
 		frames_skip = 0;
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		world.draw_world();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

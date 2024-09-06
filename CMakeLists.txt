@@ -19,14 +19,16 @@ add_library(glad ${CMAKE_CURRENT_SOURCE_DIR}/glad/src/glad.c)
 add_library(arena ${CMAKE_CURRENT_SOURCE_DIR}/src/arenas/Arena.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/arenas/PoolArena.cpp)
 add_library(world ${CMAKE_CURRENT_SOURCE_DIR}/src/game/World.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/game/ChunkHandler.cpp )
 add_library(render ${CMAKE_CURRENT_SOURCE_DIR}/src/game/Renderer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader_util.cpp)
+add_library(logger ${CMAKE_CURRENT_SOURCE_DIR}/src/game/Logger.cpp)
 
 target_include_directories(arena PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(render PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(world PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(logger PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 add_executable(main ./src/game/main.cpp)
 
 target_include_directories(main PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(main PRIVATE world render arena glad glfw)
+target_link_libraries(main PRIVATE world render logger arena glad glfw)
 
 
