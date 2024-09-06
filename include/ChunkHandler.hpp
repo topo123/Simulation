@@ -30,6 +30,7 @@ public:
 	{
 		vector2 old_pos;
 		vector2 new_pos;
+		size_t index;
 	};
 
 	struct Chunk
@@ -57,10 +58,10 @@ public:
 	size_t index(int x, int y);
 	Material* get_material(int x, int y);
 
-	Chunk* move_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
-	bool update_down(Chunk* chunk, Material* material);
-	bool update_side(Chunk* chunk, Material* material);
-	bool update_side_down(Chunk* chunk, Material* material);
+	Chunk* move_material(Chunk* chunk, Material* material, size_t index, vector2* old_pos, vector2* new_pos);
+	bool update_down(Chunk* chunk, Material* material, size_t index);
+	bool update_side(Chunk* chunk, Material* material, size_t index);
+	bool update_side_down(Chunk* chunk, Material* material, size_t index);
 
 	std::unordered_map<vector2, Chunk*, vector_hash> chunks;
 	std::vector<Chunk*> iter_chunks;
