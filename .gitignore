@@ -1,4 +1,5 @@
 .cache/
 compile_commands.json
 build/
+logs/
 glfw-3.4/
