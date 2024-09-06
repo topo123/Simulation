@@ -2,4 +2,5 @@
 compile_commands.json
 build/
 logs/
+logs/chunk_log.txt
 glfw-3.4/
