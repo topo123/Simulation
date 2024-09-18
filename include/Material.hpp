@@ -2,7 +2,7 @@
 #define MATERIAL_H
 #include <functional>
 
-#define NUM_MATERIALS 2.0f
+#define NUM_MATERIALS 5.0f
 
 enum Properties{
 	STATIC = 0b00000000,
@@ -52,6 +52,7 @@ enum MatType
 	WATER,
 	FIRE,
 	WOOD,
+	STONE,
 	ACID,
 	NITRO
 };
@@ -60,11 +61,13 @@ struct MatTexCoords
 {
 	const float SAND {0.0f};
 	const float WATER = {1.0f/NUM_MATERIALS};
+	const float STONE = {2.0f/NUM_MATERIALS};
+	const float DIRTY_DEBUG = {3.0f/NUM_MATERIALS};
+	const float GRID_DEBUG = {4.0f/NUM_MATERIALS};
 };
 
 struct Material
 {
-	bool updated = true;
 	float tex_offset;
 	vector2 position {0, 0};
 	vector2 velocity {0, 0};

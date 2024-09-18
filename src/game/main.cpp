@@ -27,6 +27,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		material_type = MatType::WATER;
 	}
+	else if(key == GLFW_KEY_3 && action == GLFW_PRESS)
+	{
+		material_type = MatType::STONE;
+	}
 }
 
 void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos)
@@ -116,10 +120,14 @@ void game_loop()
 	World world;
 	world.init_world(80, 60, 800, 600);
 
+	Logger log;
+	log.init_logger("fps.txt");
 
-	const unsigned int UPS = 200;
+	const unsigned int UPS = 120;
+	const unsigned int FPS = 60;
+	const float FPS_SLICE = 1.0f/FPS;
 	const float UPS_SLICE = 1.0f/UPS;
-	const unsigned int max_updates = 10;
+	const unsigned int max_updates = 30;
 	const unsigned int MAX_FRAME_SKIPS = 10;
 	unsigned int frames_skip = 0;
 
@@ -136,17 +144,20 @@ void game_loop()
 	{
 		if(mousePressed)
 		{
-			world.create_materials(mouse_x, mouse_y, 11,  11,  material_type, arena);
+			world.create_materials(mouse_x, mouse_y, 11, 11,  material_type, arena);
 		}
 
 		elapsed_time = glfwGetTime() - nowTime;
 		nowTime = glfwGetTime();
 		time_accumulator +=  elapsed_time;
+		frame_accumulator += elapsed_time;
 
 		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS)
 		{
-			std::cout << "UPS SLICE: " << std::to_string(UPS_SLICE) << " Accumulated time: " << std::to_string(time_accumulator) << '\n';
+			double total_time = glfwGetTime();
 			world.update_world();
+			double elapse = glfwGetTime() - total_time;
+			log.log("Total update time: " + std::to_string(elapse));
 			time_accumulator -= UPS_SLICE;
 			frames_skip ++;
 		}
@@ -155,6 +166,7 @@ void game_loop()
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		world.draw_world();
+		frame_accumulator -= FPS_SLICE;
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

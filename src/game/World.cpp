@@ -1,4 +1,3 @@
-#include <iostream>
 #include <World.hpp>
 #include <cassert>
 
@@ -60,7 +59,6 @@ void World::create_materials(int center_x, int center_y, int width, int height, 
 
 	std::vector<Material*> materials;
 	materials.resize(num_rows * num_cols, nullptr);
-	std::cout << "Mouse pos: (" << std::to_string(center_x) << ", " << std::to_string(center_y) << ")\n";
 
 	int counter = 0;
 	for(size_t i = 0; i < num_rows * num_cols; i ++)
@@ -106,7 +104,13 @@ void World::set_material_properties(Material* material, MatType type, vector2* p
 		material->tex_offset = tex_coords.SAND;
 		material->property = static_cast<Properties>(DOWN + DOWN_SIDE);
 	}
+	else if(type == STONE)
+	{
+		material->tex_offset = tex_coords.STONE;
+		material->property = static_cast<Properties>(STATIC);
+	}
 }
+
 
 void World::update_world()
 {
@@ -121,6 +125,8 @@ void World::update_world()
 		{
 			handler.iter_chunks.erase(handler.iter_chunks.begin() + i);
 			handler.chunks.erase(chunk->coords);
+			chunk->update_list.clear();
+			chunk->materials.clear();
 			delete chunk;
 		}
 	}
@@ -128,8 +134,13 @@ void World::update_world()
 
 void World::draw_world()
 {
+	
 	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
 	{
+		vector2 end_coords;
+		end_coords.x = (chunk->coords.x * handler.chunk_width) + handler.chunk_width;
+		end_coords.y = (chunk->coords.y * handler.chunk_height) + handler.chunk_height;
+		vector2 start_coords {chunk->coords.x * handler.chunk_width, chunk->coords.y * handler.chunk_height};
 		handler.draw_chunk(chunk, render);
 	}
 }

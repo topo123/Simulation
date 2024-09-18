@@ -63,6 +63,9 @@ void Renderer::initRenderData()
 	unsigned char tex_colors[] = {
 		246, 220, 189, 255, //sand color
 		15, 94, 156, 255, //water color
+		136, 140, 141, 255, //stone color
+		170, 255, 0, 255,  //dirty rect debug color
+		255, 0, 0, 255 //grid debug color
 	};
 
 	glGenTextures(1, &texture);
@@ -70,8 +73,9 @@ void Renderer::initRenderData()
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 5, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
 
 
 	compile_shaders();
@@ -81,13 +85,13 @@ void Renderer::initRenderData()
 	float vertices[] = {
 		0.0f, 0.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f
+		1.0f, 1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f, 0.0f, 1.0f
 	};
 
 	unsigned int indices[] = {
 		0, 1, 2,
-		1, 2, 3
+		1, 3, 2
 	};
 
 	glGenVertexArrays(1, &quad);
@@ -137,3 +141,28 @@ void Renderer::render(float tex_offset, vector2* pos, vector2* size)
 }
 
 
+
+void Renderer::draw_rect(vector2& upper, vector2& lower, float offset)
+{
+	glUseProgram(shader_program);
+	glm::mat4 model = glm::mat4(1.0f);
+
+	model = glm::translate(model, glm::vec3(upper.x, upper.y, 0.0f));
+	model = glm::scale(model, glm::vec3((lower.x - upper.x), (lower.y - upper.y), 1.0f));
+
+	int matrix = glGetUniformLocation(shader_program, "model");
+	assert(matrix != -1);
+	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(model));
+
+
+	int off = glGetUniformLocation(shader_program,"offset"); 
+	assert(off != -1);
+	glUniform1f(off, offset);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glBindVertexArray(quad);
+	glDrawArrays(GL_LINE_LOOP, 0, 4);
+	glBindVertexArray(0);
+}
