@@ -30,6 +30,7 @@ public:
 	{
 		vector2 old_pos;
 		vector2 new_pos;
+		bool swap{false};
 	};
 
 	struct Chunk
@@ -44,8 +45,12 @@ public:
 		std::vector<Move> moves;
 	};
 
+	void water_sand_rxn(Chunk* chunk, Material* water, Material* sand);
 	void make_dirty_rect(Chunk* chunk);
 	void expand_rect(Chunk* chunk, vector2* old_pos, vector2* new_pos);
+	bool can_react(Material* m1, Material* m2);
+	std::vector<vector2> get_rxn_coords(Material* material);
+	void react(Chunk* chunk, Material* m1, Material* m2);
 
 	Chunk* get_chunk(int x, int y);
 	void commit_changes(Chunk* chunk);
@@ -61,7 +66,7 @@ public:
 	size_t index(int x, int y);
 	Material* get_material(int x, int y);
 
-	Chunk* move_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
+	Chunk* move_material(Chunk* chunk, Material* material, bool swap, vector2* old_pos, vector2* new_pos);
 	bool update_down(Chunk* chunk, Material* material);
 	bool update_side(Chunk* chunk, Material* material);
 	bool update_side_down(Chunk* chunk, Material* material);
