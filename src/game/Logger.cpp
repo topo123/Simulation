@@ -9,4 +9,5 @@ void Logger::init_logger(std::string log_name)
 void Logger::log(std::string message)
 {
 	logger << message << std::endl;
+	logger.flush();
 }

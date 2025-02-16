@@ -7,6 +7,10 @@
 
 class Renderer
 {
+	unsigned int scr_width = 800, scr_height = 600;
+	unsigned int FBO;
+	unsigned int RBO;
+	unsigned int color_buffer;
 	unsigned int quad;
 	unsigned int shader_program;
 	unsigned int texture;

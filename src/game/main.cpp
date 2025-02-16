@@ -9,7 +9,9 @@
 
 
 double mouse_x, mouse_y;
+bool paused = false;
 bool mousePressed = false;
+bool erase = false;
 MatType material_type = MatType::SAND;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -19,7 +21,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if(key == GLFW_KEY_1 && action == GLFW_PRESS)
+	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	{
+		paused = !paused;
+	}
+	else if(key == GLFW_KEY_1 && action == GLFW_PRESS)
 	{
 		material_type = MatType::SAND;
 	}
@@ -30,6 +36,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	else if(key == GLFW_KEY_3 && action == GLFW_PRESS)
 	{
 		material_type = MatType::STONE;
+	}
+	else if(key == GLFW_KEY_4 && action == GLFW_PRESS)
+	{
+		material_type = MatType::ACID;
+	}
+	else if(key == GLFW_KEY_5 && action == GLFW_PRESS)
+	{
+		material_type = MatType::SMOKE;
 	}
 }
 
@@ -53,6 +67,15 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	else if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
 	{
 		mousePressed = false;
+	}
+
+	if(button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	{
+		erase = true;
+	}
+	else if(button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+	{
+		erase = false;
 	}
 }
 
@@ -118,7 +141,7 @@ void game_loop()
 	std::cout << std::to_string(sizeof(Material)) << '\n';
 	PoolArena* arena = init_pool(800 * 600, sizeof(Material));
 	World world;
-	world.init_world(80, 60, 800, 600);
+	world.init_world(80, 60, 800, 600, arena);
 
 	Logger log;
 	log.init_logger("fps.txt");
@@ -144,7 +167,11 @@ void game_loop()
 	{
 		if(mousePressed)
 		{
-			world.create_materials(mouse_x, mouse_y, 11, 11,  material_type, arena);
+			world.create_materials(mouse_x, mouse_y, 11, 11, material_type);
+		}
+		if(erase)
+		{
+			world.delete_materials(mouse_x, mouse_y, 35, 35);
 		}
 
 		elapsed_time = glfwGetTime() - nowTime;
@@ -152,7 +179,7 @@ void game_loop()
 		time_accumulator +=  elapsed_time;
 		frame_accumulator += elapsed_time;
 
-		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS)
+		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS && !paused)
 		{
 			double total_time = glfwGetTime();
 			world.update_world();
@@ -170,9 +197,12 @@ void game_loop()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	free_arena(arena);
 }
 
 int main()
 {
 	game_loop();
+	glfwTerminate();
 }

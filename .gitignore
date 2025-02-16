@@ -4,3 +4,4 @@ build/
 logs/
 glfw-3.4/
 CMakeLists.txt
+compile.sh
