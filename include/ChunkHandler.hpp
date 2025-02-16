@@ -78,6 +78,7 @@ public:
 	bool update_side_down(Chunk* chunk, Material* material);
 	bool update_up(Chunk* chunk, Material* material);
 	bool update_side_up(Chunk* chunk, Material* material);
+	~ChunkHandler();
 
 	int chunk_width;
 	int chunk_height;

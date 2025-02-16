@@ -198,7 +198,6 @@ void game_loop()
 		glfwPollEvents();
 	}
 
-	free_arena(arena);
 }
 
 int main()

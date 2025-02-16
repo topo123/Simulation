@@ -804,7 +804,7 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material)
 		}
 		else if(chunks[chunk_pos]->materials[index(x, y)] == nullptr)
 		{
-			chunks[chunk_pos]->asleep = chunks[chunk_pos]->asleep == 1? 0:0;
+			chunks[chunk_pos]->asleep = chunks[chunk_pos]->asleep == 1? 0: 0;
 			chunks[chunk_pos]->update_list.insert(mat);
 			chunks[chunk_pos]->materials[index(x, y)] = mat;
 			chunks[chunk_pos]->num_materials ++;
@@ -876,6 +876,17 @@ void ChunkHandler::draw_chunk(Chunk* chunk, Renderer render)
 	chunk->d_lower.y = -1;
 	chunk->d_upper.x = -1;
 	chunk->d_upper.y = -1;
+}
+
+ChunkHandler::~ChunkHandler()
+{
+	chunks.clear();
+	free_arena(material_arena);
+	for(int i = 0; i < iter_chunks.size(); i ++)
+	{
+		iter_chunks[i]->moves.clear();
+		iter_chunks[i]->update_list.clear();
+	}
 }
 
 size_t ChunkHandler::index(int x, int y)
