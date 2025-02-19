@@ -53,9 +53,9 @@ public:
 	void smoke_mat_rxn(Chunk* chunk, Material* smoke, Material* other);
 	void destroy_material(Material* material);
 	void make_dirty_rect(Chunk* chunk);
-	void expand_rect(Chunk* chunk, vector2* old_pos, vector2* new_pos);
+	void modify_rect(Chunk* chunk, vector2* old_pos, vector2* new_pos);
 	bool can_react(Material* m1, Material* m2);
-	std::vector<vector2> get_rxn_coords(Material* material);
+	vector2 get_rxn_coord(Material* material);
 	void react(Chunk* chunk, Material* m1, Material* m2);
 
 	Chunk* get_chunk(int x, int y);
