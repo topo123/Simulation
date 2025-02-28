@@ -198,6 +198,8 @@ void game_loop()
 		glfwPollEvents();
 	}
 
+	glfwDestroyWindow(window);
+
 }
 
 int main()

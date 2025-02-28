@@ -23,6 +23,7 @@ public:
 	void draw_rect(vector2& upper, vector2& lower, float offset);
 	void initRenderData();
 	void render(float tex_offset, vector2* pos, vector2* size);
+	~Renderer();
 };
 
 

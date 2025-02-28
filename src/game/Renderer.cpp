@@ -13,6 +13,7 @@ void Renderer::compile_shaders()
 {
 	arena = init_arena();
 	shader = get_shader("src/shaders/frame_vert.vert", "src/shaders/frame_frag.frag", arena);
+	
 
 
 	unsigned int vShader = glCreateShader(GL_VERTEX_SHADER);
@@ -53,6 +54,11 @@ void Renderer::compile_shaders()
 	int matrix = glGetUniformLocation(shader_program, "projection");
 	assert(matrix != -1);
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(proj));
+
+
+	free_arena(arena);
+	shader->vertex_shader = nullptr;
+	shader->frag_shader = nullptr;
 }
 
 void Renderer::initRenderData()
@@ -165,4 +171,12 @@ void Renderer::draw_rect(vector2& upper, vector2& lower, float offset)
 	glBindVertexArray(quad);
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
 	glBindVertexArray(0);
+}
+
+Renderer::~Renderer()
+{
+	glDeleteTextures(1 ,&texture);
+	glDeleteVertexArrays(1, &quad);
+	glDeleteShader(shader_program);
+	delete shader;
 }

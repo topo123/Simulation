@@ -32,20 +32,25 @@ public:
 	{
 		vector2 old_pos;
 		vector2 new_pos;
-		bool swap{false};
 	};
 
 	struct Chunk
 	{
-		int asleep;
+		std::vector<Material*> materials;
+		std::unordered_set<Material*> update_list;
+		std::vector<Move> move_list;
+		std::vector<Move> swap_list;
 		vector2 d_upper{-1,-1};
 		vector2 d_lower{-1, -1};
 		vector2 coords {0, 0};
+		int asleep;
 		int num_materials {0};
-		std::unordered_set<Material*> update_list;
-		std::vector<Material*> materials;
-		std::vector<Move> moves;
 	};
+
+	vector2 get_rxn_coord(Material* material);
+	std::string print_pos(int x, int y);
+	size_t index(int x, int y);
+	Material* get_material(int x, int y);
 
 	void acid_mat_rxn(Chunk* chunk, Material* water, Material* other);
 	void water_sand_rxn(Chunk* chunk, Material* water, Material* sand);
@@ -54,25 +59,21 @@ public:
 	void destroy_material(Material* material);
 	void make_dirty_rect(Chunk* chunk);
 	void modify_rect(Chunk* chunk, vector2* old_pos, vector2* new_pos);
-	bool can_react(Material* m1, Material* m2);
-	vector2 get_rxn_coord(Material* material);
-	void react(Chunk* chunk, Material* m1, Material* m2);
-
-	Chunk* get_chunk(int x, int y);
 	void commit_changes(Chunk* chunk);
 	void log(std::string message);
-	bool in_world(int x, int y);
-	bool in_rect(Chunk* chunk, vector2* pos);
-	std::string print_pos(int x, int y);
 	void init_chunk_handler(int chunk_width, int chunk_height, int world_width,  int world_height, PoolArena* arena);
-	Chunk* init_chunk(int mat_x, int mat_y);
 	void add_materials(const std::vector<Material*>& materials);
 	void update_chunk(Chunk* chunk);
-	void draw_chunk(Chunk* chunk, Renderer render);
-	size_t index(int x, int y);
-	Material* get_material(int x, int y);
+	void draw_chunk(Chunk* chunk, Renderer* render);
+	bool can_react(Material* m1, Material* m2);
+	void react(Chunk* chunk, Material* m1, Material* m2);
+	void move_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
+	void swap_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
 
-	Chunk* move_material(Chunk* chunk, Material* material, bool swap, vector2* old_pos, vector2* new_pos);
+	Chunk* get_chunk(int x, int y);
+	Chunk* init_chunk(int mat_x, int mat_y);
+
+	bool in_world(int x, int y);
 	bool update_down(Chunk* chunk, Material* material);
 	bool update_side(Chunk* chunk, Material* material);
 	bool update_side_down(Chunk* chunk, Material* material);
@@ -84,5 +85,6 @@ public:
 	int chunk_height;
 	std::unordered_map<vector2, Chunk*, vector_hash> chunks;
 	std::vector<Chunk*> iter_chunks;
+	std::vector<Material*> trash_materials;
 };
 #endif

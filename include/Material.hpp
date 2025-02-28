@@ -73,12 +73,12 @@ struct MatTexCoords
 
 struct Material
 {
-	float tex_offset;
-	int health;
 	vector2 position {0, 0};
 	vector2 velocity {0, 0};
 	MatType material = MatType::NONE;
 	Properties property = Properties::STATIC;
+	float tex_offset;
+	int health;
 };
 
 

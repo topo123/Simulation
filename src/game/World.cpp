@@ -129,9 +129,9 @@ void World::delete_materials(int center_x, int center_y, int width, int height)
 
 	int prev_x = rX;
 
+	vector2 pos;
 	for(size_t i = 0; i < num_rows * num_cols; i ++)
 	{
-		vector2 pos;
 		pos.x = rX;
 		pos.y = bY;
 		Material* material = handler.get_material(pos.x, pos.y);
@@ -219,7 +219,7 @@ void World::draw_world()
 	
 	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
 	{
-		handler.draw_chunk(chunk, render);
+		handler.draw_chunk(chunk, &render);
 	}
 }
 

@@ -26,7 +26,7 @@ int free_arena(Arena* arena)
 	assert(free_failure == 0);
 #endif
 
-	if(free_failure == -1)
+	if(free_failure == 0)
 	{
 		delete arena;
 	}
