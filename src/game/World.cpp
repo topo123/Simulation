@@ -62,10 +62,10 @@ void World::create_materials(int center_x, int center_y, int width, int height, 
 	materials.resize(num_rows * num_cols, nullptr);
 
 	int counter = 0;
+	vector2 pos;
 	for(size_t i = 0; i < num_rows * num_cols; i ++)
 	{
 		materials[i] = static_cast<Material*>(allocate(arena));
-		vector2 pos;
 		pos.x = rX;
 		pos.y = bY;
 
@@ -134,8 +134,20 @@ void World::delete_materials(int center_x, int center_y, int width, int height)
 	{
 		pos.x = rX;
 		pos.y = bY;
+
+		if(!handler.in_world(rX, bY)){
+			rX --;
+
+			if(rX == lX - 1)
+			{
+				rX = prev_x;
+				bY --;
+			}
+			continue;
+		}
+
 		Material* material = handler.get_material(pos.x, pos.y);
-		
+
 		if(material != nullptr)
 		{
 			handler.destroy_material(material);
@@ -196,27 +208,40 @@ void World::set_material_properties(Material* material, MatType type, vector2* p
 
 void World::update_world()
 {
+	ChunkHandler::Chunk* chunk;
+	ChunkHandler::Chunk* delete_chunk; 
 	for(size_t i = 0; i < handler.iter_chunks.size(); i ++)
 	{
-		ChunkHandler::Chunk* chunk = handler.iter_chunks[i];
+		chunk = handler.iter_chunks[i];
 		assert(handler.chunks.find(chunk->coords) != handler.chunks.end());
 		handler.update_chunk(chunk);
-		//std::sort(chunk->moves.begin(), chunk->moves.end(), [](ChunkHandler::Move& a, ChunkHandler::Move& b){return a.old_pos.x < b.old_pos.x;});
 		handler.commit_changes(chunk);
-		if(chunk->num_materials == 0)
-		{
-			handler.iter_chunks.erase(handler.iter_chunks.begin() + i);
+		if(chunk->num_materials == 0){
+			handler.delete_chunks.push_back(chunk);
 			handler.chunks.erase(chunk->coords);
-			chunk->update_list.clear();
-			chunk->materials.clear();
-			delete chunk;
+			handler.iter_chunks[i] = handler.iter_chunks.back();
+			handler.iter_chunks.pop_back();
+			i --;
 		}
 	}
+
+	for(size_t i = 0; i < handler.delete_chunks.size(); i ++){
+		delete_chunk = handler.delete_chunks[i];
+		delete_chunk->update_list.clear();
+		delete_chunk->materials.clear();
+		delete delete_chunk;
+	}
+
+	for(size_t i = 0; i < handler.add_materials_list.size(); i ++){
+		handler.iter_chunks.push_back(handler.add_materials_list[i]);
+	}
+	handler.add_materials_list.clear();
+	handler.delete_chunks.clear();
 }
 
 void World::draw_world()
 {
-	
+
 	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
 	{
 		handler.draw_chunk(chunk, &render);

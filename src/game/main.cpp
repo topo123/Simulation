@@ -143,9 +143,6 @@ void game_loop()
 	World world;
 	world.init_world(80, 60, 800, 600, arena);
 
-	Logger log;
-	log.init_logger("fps.txt");
-
 	const unsigned int UPS = 120;
 	const unsigned int FPS = 60;
 	const float FPS_SLICE = 1.0f/FPS;
@@ -184,7 +181,6 @@ void game_loop()
 			double total_time = glfwGetTime();
 			world.update_world();
 			double elapse = glfwGetTime() - total_time;
-			log.log("Total update time: " + std::to_string(elapse));
 			time_accumulator -= UPS_SLICE;
 			frames_skip ++;
 		}

@@ -26,13 +26,6 @@ struct vector2
 		return y < other.y;
 	}
 
-	vector2& operator=(const vector2& other)
-	{
-		x = other.x;
-		y = other.y;
-		return *this;
-	}
-
 	bool operator==(const vector2& other) const
 	{
 		return other.x == x && other.y == y;

@@ -1,6 +1,5 @@
 #ifndef CHUNKHANNDLER_H
 #define CHUNKHANNDLER_H
-#include <Logger.hpp>
 #include <string>
 #include <Renderer.hpp>
 #include <PoolArena.hpp>
@@ -8,30 +7,28 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <random>
 
 class ChunkHandler
 {
 
-	int x_chunks;
-	int y_chunks;
-
-
-	int world_width;
-	int world_height;
-	Logger logger;
-	Logger dirty;
-	Logger mat_logger;
+	std::random_device rd;
+	std::mt19937 gen;
 	PoolArena* material_arena;
 	MatTexCoords tex_coords;
+	int x_chunks;
+	int y_chunks;
+	int world_width;
+	int world_height;
 
 
 public:
-	int chunk_size;
 
 	struct Move
 	{
 		vector2 old_pos;
 		vector2 new_pos;
+
 	};
 
 	struct Chunk
@@ -47,6 +44,15 @@ public:
 		int num_materials {0};
 	};
 
+	std::vector<Material*> trash_materials;
+	std::vector<Chunk*> add_materials_list;
+	std::vector<Chunk*> delete_chunks;
+	std::vector<Chunk*> iter_chunks;
+	std::unordered_map<vector2, Chunk*, vector_hash> chunks;
+	int chunk_width;
+	int chunk_height;
+	int chunk_size;
+
 	vector2 get_rxn_coord(Material* material);
 	std::string print_pos(int x, int y);
 	size_t index(int x, int y);
@@ -60,7 +66,6 @@ public:
 	void make_dirty_rect(Chunk* chunk);
 	void modify_rect(Chunk* chunk, vector2* old_pos, vector2* new_pos);
 	void commit_changes(Chunk* chunk);
-	void log(std::string message);
 	void init_chunk_handler(int chunk_width, int chunk_height, int world_width,  int world_height, PoolArena* arena);
 	void add_materials(const std::vector<Material*>& materials);
 	void update_chunk(Chunk* chunk);
@@ -69,6 +74,7 @@ public:
 	void react(Chunk* chunk, Material* m1, Material* m2);
 	void move_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
 	void swap_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
+	void no_swap_in_move(Chunk* chunk);
 
 	Chunk* get_chunk(int x, int y);
 	Chunk* init_chunk(int mat_x, int mat_y);
@@ -81,10 +87,5 @@ public:
 	bool update_side_up(Chunk* chunk, Material* material);
 	~ChunkHandler();
 
-	int chunk_width;
-	int chunk_height;
-	std::unordered_map<vector2, Chunk*, vector_hash> chunks;
-	std::vector<Chunk*> iter_chunks;
-	std::vector<Material*> trash_materials;
 };
 #endif
