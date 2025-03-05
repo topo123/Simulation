@@ -102,9 +102,6 @@ vector2 ChunkHandler::get_rxn_coord(Material* material)
 	{
 		if(in_world(material->position.x, material->position.y + 1) && get_material(material->position.x, material->position.y + 1) != nullptr && can_react(material, get_material(material->position.x, material->position.y + 1)))
 		{
-			if(material->material == MatType::SAND){
-				assert(get_material(material->position.x, material->position.y + 1)->material == MatType::WATER);
-			}
 			return {material->position.x, material->position.y + 1};
 		}
 		else if(in_world(material->position.x - 1, material->position.y + 1) && get_material(material->position.x - 1, material->position.y + 1) != nullptr && can_react(material, get_material(material->position.x - 1, material->position.y + 1)))
