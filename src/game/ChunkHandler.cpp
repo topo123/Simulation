@@ -242,7 +242,6 @@ void ChunkHandler::swap_material(Chunk* chunk, Material* material, vector2* old_
 
 		Material* swap_material = material;
 		Material* new_material = new_chunk->materials[index(new_pos->x, new_pos->y)];
-		assert(new_material->material == MatType::WATER);
 		assert(chunk->materials[index(old_pos->x, old_pos->y)] == material);
 		chunk->materials[index(old_pos->x, old_pos->y)] = new_material;
 		new_chunk->materials[index(new_pos->x, new_pos->y)] = swap_material;
