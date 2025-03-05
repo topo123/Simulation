@@ -178,9 +178,7 @@ void game_loop()
 
 		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS && !paused)
 		{
-			double total_time = glfwGetTime();
-			world.update_world();
-			double elapse = glfwGetTime() - total_time;
+			world.update_world(UPS_SLICE);
 			time_accumulator -= UPS_SLICE;
 			frames_skip ++;
 		}

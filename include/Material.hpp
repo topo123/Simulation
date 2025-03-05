@@ -13,6 +13,11 @@ enum Properties{
 	UP_SIDE = 0b00010000
 };
 
+struct fvector2{
+	float x{0};
+	float y{0};
+};
+
 struct vector2
 {
 	int x {0};
@@ -67,7 +72,7 @@ struct MatTexCoords
 struct Material
 {
 	vector2 position {0, 0};
-	vector2 velocity {0, 0};
+	fvector2 velocity {0, 0};
 	MatType material = MatType::NONE;
 	Properties property = Properties::STATIC;
 	float tex_offset;

@@ -28,7 +28,6 @@ public:
 	{
 		vector2 old_pos;
 		vector2 new_pos;
-
 	};
 
 	struct Chunk
@@ -52,6 +51,8 @@ public:
 	int chunk_width;
 	int chunk_height;
 	int chunk_size;
+	const float g_force = 5;
+	const int fast_liquid_spread = 5;
 
 	vector2 get_rxn_coord(Material* material);
 	std::string print_pos(int x, int y);
@@ -68,7 +69,7 @@ public:
 	void commit_changes(Chunk* chunk);
 	void init_chunk_handler(int chunk_width, int chunk_height, int world_width,  int world_height, PoolArena* arena);
 	void add_materials(const std::vector<Material*>& materials);
-	void update_chunk(Chunk* chunk);
+	void update_chunk(Chunk* chunk, const float dT);
 	void draw_chunk(Chunk* chunk, Renderer* render);
 	bool can_react(Material* m1, Material* m2);
 	void react(Chunk* chunk, Material* m1, Material* m2);
@@ -80,7 +81,7 @@ public:
 	Chunk* init_chunk(int mat_x, int mat_y);
 
 	bool in_world(int x, int y);
-	bool update_down(Chunk* chunk, Material* material);
+	bool update_down(Chunk* chunk, Material* material, const float dT);
 	bool update_side(Chunk* chunk, Material* material);
 	bool update_side_down(Chunk* chunk, Material* material);
 	bool update_up(Chunk* chunk, Material* material);

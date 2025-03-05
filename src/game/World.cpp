@@ -206,7 +206,7 @@ void World::set_material_properties(Material* material, MatType type, vector2* p
 }
 
 
-void World::update_world()
+void World::update_world(const float dT)
 {
 	ChunkHandler::Chunk* chunk;
 	ChunkHandler::Chunk* delete_chunk; 
@@ -214,7 +214,7 @@ void World::update_world()
 	{
 		chunk = handler.iter_chunks[i];
 		assert(handler.chunks.find(chunk->coords) != handler.chunks.end());
-		handler.update_chunk(chunk);
+		handler.update_chunk(chunk, dT);
 		handler.commit_changes(chunk);
 		if(chunk->num_materials == 0){
 			handler.delete_chunks.push_back(chunk);
