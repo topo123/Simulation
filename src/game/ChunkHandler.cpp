@@ -353,6 +353,7 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 
 		int mat_x = mat->position.x;
 		int mat_y = mat->position.y;
+		const int check_side_cells = fast_liquid_spread;
 		const int check_down_cells = int(mat->velocity.y + 0.5);
 
 		if(mat->property & Properties::DOWN)
@@ -417,22 +418,37 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			assert(min_x <= max_x && min_y <= max_y);
 			is_dirty = 1;
 		}
-		else if(mat->property & Properties::SIDE && in_world(mat_x - 1, mat_y) && get_material(mat_x - 1, mat_y) == nullptr)
+		else if(mat->property & Properties::SIDE)
 		{
-			min_x = std::min(mat_x - 1, min_x);
-			min_y = std::min(mat_y, min_y);
-			max_y = std::max(mat_y,  max_y);
-			max_x = std::max(mat_x, max_x);
-			assert(min_x <= max_x && min_y <= max_y);
-			is_dirty = 1;
+			int curr_offset = 1;
+			while(in_world(mat_x - curr_offset, mat_y) && get_material(mat_x - curr_offset, mat_y) == nullptr && curr_offset <= check_side_cells){
+				curr_offset ++;
+			}
+
+			if(curr_offset > 0)
+			{
+				min_x = std::min(mat_x - curr_offset + 1, min_x);
+				min_y = std::min(mat_y, min_y);
+				max_y = std::max(mat_y,  max_y);
+				max_x = std::max(mat_x, max_x);
+				is_dirty = 1;
+			}
 		}
-		else if(mat->property & Properties::SIDE && in_world(mat_x + 1, mat_y) && get_material(mat_x + 1, mat_y) == nullptr)
+		else if(mat->property & Properties::SIDE)
 		{
-			min_x = std::min(mat_x, min_x);
-			min_y = std::min(mat_y, min_y);
-			max_y = std::max(mat_y,  max_y);
-			max_x = std::max(mat_x + 1, max_x);
-			is_dirty = 1;
+			int curr_offset = 1;
+			while(in_world(mat_x + curr_offset, mat_y) && get_material(mat_x + curr_offset, mat_y) == nullptr && curr_offset <= check_side_cells){
+				curr_offset ++;
+			}
+
+			if(curr_offset > 0)
+			{
+				min_x = std::min(mat_x - curr_offset + 1, min_x);
+				min_y = std::min(mat_y, min_y);
+				max_y = std::max(mat_y,  max_y);
+				max_x = std::max(mat_x, max_x);
+				is_dirty = 1;
+			}
 		}
 		else
 	{
@@ -616,43 +632,82 @@ bool ChunkHandler::update_side(Chunk* chunk, Material* material)
 {
 	uint8_t left = material->velocity.x < 0;
 	uint8_t right = material->velocity.x > 0; 
-	if(!left || !right)
+	if(!left && !right)
 	{
 		uint8_t direction = rand() % 2;
 		left = direction == 0;
 		right = direction == 1;
+		material->velocity.x = left ? -fast_liquid_spread: fast_liquid_spread;
 	}
 
-	if(left && in_world(material->position.x - 1, material->position.y) && get_material(material->position.x - 1, material->position.y) == nullptr)
+
+
+	vector2 new_pos{material->position.x, material->position.y};
+	const int num_cells_move = fast_liquid_spread;
+	int curr_offset = 1;
+
+	if(left) 
 	{
-		vector2 new_pos {material->position.x - 1, material->position.y};
-		Move move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		assert(move.old_pos == material->position);
+		while(in_world(new_pos.x - curr_offset, new_pos.y) && get_material(new_pos.x - curr_offset, new_pos.y) == nullptr && curr_offset <= num_cells_move){
+			curr_offset ++;
+		}
+	}
+	if(right)
+	{
+		while(in_world(new_pos.x + curr_offset, new_pos.y) && get_material(new_pos.x + curr_offset, new_pos.y) == nullptr && curr_offset <= num_cells_move){
+			curr_offset ++;
+		}
+	}
+
+	if(curr_offset == 1){
+		left = !left;
+		right = !right;
+		material->velocity.x = -material->velocity.x;
+	}
+	else if(left)
+	{
+		Move move {{material->position.x, material->position.y}, {new_pos.x - curr_offset + 1, new_pos.y}};
 		chunk->move_list.push_back(move);
 		return true;
 	}
-	if(right && in_world(material->position.x + 1, material->position.y) && get_material(material->position.x + 1, material->position.y) == nullptr)
+	else if(right)
 	{
-		vector2 new_pos {material->position.x + 1, material->position.y};
-		Move move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
+		Move move {{material->position.x, material->position.y}, {new_pos.x + curr_offset - 1, new_pos.y}};
 		chunk->move_list.push_back(move);
 		return true;
 	}
 
-	if(left && in_world(material->position.x -  1, material->position.y) && get_material(material->position.x - 1, material->position.y) != nullptr && in_world(material->position.x + 1, material->position.y) && get_material(material->position.x + 1, material->position.y) == nullptr)
+	curr_offset = 1;
+	if(left) 
 	{
-		vector2 new_pos {material->position.x + 1, material->position.y};
-		Move move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
+		while(in_world(new_pos.x - curr_offset, new_pos.y) && get_material(new_pos.x - curr_offset, new_pos.y) == nullptr && curr_offset <= num_cells_move){
+			curr_offset ++;
+		}
+	}
+	if(right)
+	{
+		while(in_world(new_pos.x + curr_offset, new_pos.y) && get_material(new_pos.x + curr_offset, new_pos.y) == nullptr && curr_offset <= num_cells_move){
+			curr_offset ++;
+		}
+	}
+
+	if(curr_offset == 1){
+		material->velocity.x = 0;
+		return false;
+	}
+	else if(left)
+	{
+		Move move {{material->position.x, material->position.y}, {new_pos.x - curr_offset + 1, new_pos.y}};
 		chunk->move_list.push_back(move);
 		return true;
 	}
-	if(right && in_world(material->position.x + 1, material->position.y) && get_material(material->position.x + 1, material->position.y) != nullptr && in_world(material->position.x - 1, material->position.y) && get_material(material->position.x - 1, material->position.y) == nullptr)
+	else if(right)
 	{
-		vector2 new_pos {material->position.x - 1, material->position.y};
-		Move move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
+		Move move {{material->position.x, material->position.y}, {new_pos.x + curr_offset - 1, new_pos.y}};
 		chunk->move_list.push_back(move);
 		return true;
 	}
+	assert(false);
 	return false;
 }
 
