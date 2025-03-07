@@ -7,6 +7,81 @@
 #include <cstdint>
 #include <cassert>
 
+void ChunkHandler::remove_from_anim_list(Material* material)
+{
+	for(int i = 0; i < animation_list.size(); i ++)
+	{
+		if(animation_list[i].material == material)
+		{
+			animation_list[i] = animation_list.back();
+			animation_list.pop_back();
+		}
+	}
+}
+
+
+bool ChunkHandler::in_anim_list(Material* material){
+	for(int i = 0; i < animation_list.size(); i ++)
+	{
+		if(animation_list[i].material == material)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void ChunkHandler::set_material_properties(Material* material, MatType type, vector2* pos)
+{
+	material->material = type;
+	material->position.x = pos->x;
+	material->position.y = pos->y;
+	material->velocity.x = 0;
+	material->velocity.y = 1;
+	if(type == WATER)
+	{
+		material->health = 100;
+		material->tex_offset = tex_coords.WATER;
+		material->property = static_cast<Properties>(DOWN_SIDE + DOWN + SIDE);
+	}
+	else if(type == SAND)
+	{
+		material->health = 500;
+		material->tex_offset = tex_coords.SAND;
+		material->property = static_cast<Properties>(DOWN + DOWN_SIDE);
+	}
+	else if(type == STONE)
+	{
+		material->health = 500;
+		material->tex_offset = tex_coords.STONE;
+		material->property = static_cast<Properties>(STATIC);
+	}
+	else if(type == ACID)
+	{
+		material->tex_offset = tex_coords.ACID;
+		material->health = 200;
+		material->property = static_cast<Properties>(DOWN_SIDE + DOWN + SIDE);
+	}
+	else if(type == SMOKE)
+	{
+		material->tex_offset = tex_coords.SMOKE;
+		material->health = 200;
+		material->property = static_cast<Properties>(UP_SIDE + UP + SIDE);
+	}
+	else if(type == WOOD)
+	{
+		material->tex_offset = tex_coords.WOOD;
+		material->health = 50;
+		material->property = static_cast<Properties>(STATIC);
+		material->reaction = static_cast<ReactionProperties>(FLAMMABLE);
+	}
+	else if(type == FIRE)
+	{
+		material->tex_offset = tex_coords.FIRE;
+		material->health = 100;
+		material->property = static_cast<Properties>(STATIC + SHORT_LIVED);
+	}
+}
 
 void ChunkHandler::destroy_material(Material* material)
 {
@@ -51,28 +126,6 @@ ChunkHandler::Chunk* ChunkHandler::init_chunk(int mat_x, int mat_y)
 	return new_chunk;
 }
 
-bool ChunkHandler::in_world(int x, int y)
-{
-	return x >= 0 && x < world_width && y >= 0 && y < world_height;
-}
-
-Material* ChunkHandler::get_material(int x, int y)
-{
-
-	if(!in_world(x, y))
-	{
-		assert(in_world(x, y));
-	}
-	vector2 chunk_coords {x/chunk_width, y/chunk_height};
-
-	if(chunks.find(chunk_coords) == chunks.end())
-	{
-		return nullptr;
-	}
-
-
-	return chunks[chunk_coords]->materials[index(x, y)];
-}
 
 bool ChunkHandler::can_react(Material* m1, Material* m2)
 {
@@ -82,13 +135,16 @@ bool ChunkHandler::can_react(Material* m1, Material* m2)
 			return m2->material == MatType::WATER || m2->material == ACID;
 			break;
 		case MatType::ACID:
-			return m2->material == WATER || m2->material == STONE || m2->material == SAND;
+			return m2->material == WATER || m2->material == STONE || m2->material == SAND || m2->material == WOOD;
 			break;
 		case MatType::WATER:
-			return m2->material == ACID;
+			return m2->material == ACID || m2->material == FIRE;
 			break;
 		case MatType::SMOKE:
 			return m2->property & Properties::DOWN;
+			break;
+		case MatType::FIRE:
+			return m2->material == MatType::WATER || m2->reaction & FLAMMABLE;
 			break;
 	}
 	return false;
@@ -140,6 +196,40 @@ vector2 ChunkHandler::get_rxn_coord(Material* material)
 		else if(in_world(material->position.x + 1, material->position.y) && get_material(material->position.x + 1, material->position.y) != nullptr && can_react(material, get_material(material->position.x + 1, material->position.y)))
 		{
 			return {material->position.x + 1, material->position.y};
+		}
+	}
+	else if(material->material == FIRE)
+	{
+		std::vector<vector2> flammable_materials;
+		const vector2 fire_pos{material->position.x, material->position.y};
+		if(in_world(fire_pos.x - 1, fire_pos.y - 1) && get_material(fire_pos.x - 1, fire_pos.y - 1) != nullptr && get_material(fire_pos.x - 1, fire_pos.y - 1)->reaction == FLAMMABLE){
+			flammable_materials.push_back({fire_pos.x - 1, fire_pos.y - 1});
+		}
+		if(in_world(fire_pos.x, fire_pos.y - 1) && get_material(fire_pos.x, fire_pos.y - 1) != nullptr && get_material(fire_pos.x, fire_pos.y - 1)->reaction == FLAMMABLE){
+			flammable_materials.push_back({fire_pos.x, fire_pos.y - 1});
+		}
+		if(in_world(fire_pos.x + 1, fire_pos.y - 1) && get_material(fire_pos.x + 1, fire_pos.y - 1) != nullptr && get_material(fire_pos.x + 1, fire_pos.y - 1)->reaction == FLAMMABLE){
+			flammable_materials.push_back({fire_pos.x + 1, fire_pos.y - 1});
+		}
+		if(in_world(fire_pos.x + 1, fire_pos.y) && get_material(fire_pos.x + 1, fire_pos.y) && get_material(fire_pos.x + 1, fire_pos.y)->reaction == FLAMMABLE){
+			flammable_materials.push_back({fire_pos.x + 1, fire_pos.y});
+		}
+		if(in_world(fire_pos.x + 1, fire_pos.y + 1) && get_material(fire_pos.x + 1, fire_pos.y + 1) != nullptr && get_material(fire_pos.x + 1, fire_pos.y + 1)->reaction == FLAMMABLE){
+			flammable_materials.push_back({fire_pos.x + 1, fire_pos.y + 1});
+		}
+		if(in_world(fire_pos.x, fire_pos.y + 1) && get_material(fire_pos.x, fire_pos.y + 1) != nullptr && get_material(fire_pos.x, fire_pos.y + 1)->reaction == FLAMMABLE){
+			flammable_materials.push_back({fire_pos.x, fire_pos.y + 1});
+		}
+		if(in_world(fire_pos.x - 1, fire_pos.y + 1) && get_material(fire_pos.x - 1, fire_pos.y + 1) != nullptr && get_material(fire_pos.x - 1, fire_pos.y + 1)->reaction == FLAMMABLE){
+			flammable_materials.push_back({fire_pos.x - 1, fire_pos.y + 1});
+		}
+		if(in_world(fire_pos.x - 1, fire_pos.y) && get_material(fire_pos.x - 1, fire_pos.y) != nullptr && get_material(fire_pos.x - 1, fire_pos.y)->reaction == FLAMMABLE){
+			flammable_materials.push_back({fire_pos.x - 1, fire_pos.y});
+		}
+
+		if(flammable_materials.size() > 0)
+		{
+			return flammable_materials[rand() % flammable_materials.size()];
 		}
 	}
 	return {-1, -1};
@@ -346,16 +436,24 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 	for(auto i = chunk->update_list.begin(); i != chunk->update_list.end(); i ++)
 	{
 		Material* mat = (*i);
-		if(mat->property & Properties::STATIC)
+		if(mat->property & Properties::STATIC && !(mat->property & Properties::SHORT_LIVED))
 		{
 			continue;
 		}
+
 
 		int mat_x = mat->position.x;
 		int mat_y = mat->position.y;
 		const int check_side_cells = fast_liquid_spread;
 		const int check_down_cells = int(mat->velocity.y + 0.5);
 
+		if(mat->property & Properties::SHORT_LIVED){
+			min_x = std::min(mat_x, min_x);
+			min_y = std::min(mat_y, min_y);
+			max_y = std::max(mat_y, max_y);
+			max_x = std::max(mat_x, max_x);
+			is_dirty = 1;
+		}
 		if(mat->property & Properties::DOWN)
 		{
 			int curr_offset = 1;
@@ -364,7 +462,7 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 				curr_offset ++;
 			}
 
-			if(curr_offset > 0)
+			if(curr_offset > 1)
 			{
 				min_x = std::min(mat_x, min_x);
 				min_y = std::min(mat_y, min_y);
@@ -373,7 +471,7 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 				is_dirty = 1;
 			}
 		}
-		else if(mat->property & Properties::UP && in_world(mat_x, mat_y - 1) && get_material(mat_x, mat_y - 1) == nullptr)
+		if(mat->property & Properties::UP && in_world(mat_x, mat_y - 1) && get_material(mat_x, mat_y - 1) == nullptr)
 		{
 			min_x = std::min(mat_x, min_x);
 			min_y = std::min(mat_y - 1, min_y);
@@ -382,7 +480,7 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			assert(min_x <= max_x && min_y <= max_y);
 			is_dirty = 1;
 		}
-		else if(mat->property & Properties::DOWN_SIDE && in_world(mat_x + 1, mat_y) && get_material(mat_x + 1, mat_y) == nullptr && in_world(mat_x + 1, mat_y + 1) && get_material(mat_x + 1, mat_y + 1) == nullptr)
+		if(mat->property & Properties::DOWN_SIDE && in_world(mat_x + 1, mat_y) && get_material(mat_x + 1, mat_y) == nullptr && in_world(mat_x + 1, mat_y + 1) && get_material(mat_x + 1, mat_y + 1) == nullptr)
 		{
 			min_x = std::min(mat_x, min_x);
 			min_y = std::min(mat_y, min_y);
@@ -391,7 +489,7 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			assert(min_x <= max_x && min_y <= max_y);
 			is_dirty = 1;
 		}
-		else if(mat->property & Properties::DOWN_SIDE && in_world(mat_x - 1, mat_y) && get_material(mat_x - 1, mat_y) == nullptr && in_world(mat_x - 1, mat_y + 1) && get_material(mat_x - 1, mat_y + 1) == nullptr)
+		if(mat->property & Properties::DOWN_SIDE && in_world(mat_x - 1, mat_y) && get_material(mat_x - 1, mat_y) == nullptr && in_world(mat_x - 1, mat_y + 1) && get_material(mat_x - 1, mat_y + 1) == nullptr)
 		{
 			min_x = std::min(mat_x - 1, min_x);
 			min_y = std::min(mat_y, min_y);
@@ -400,7 +498,7 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			assert(min_x <= max_x && min_y <= max_y);
 			is_dirty = 1;
 		}
-		else if(mat->property & Properties::UP_SIDE && in_world(mat_x + 1, mat_y) && get_material(mat_x + 1, mat_y) == nullptr && in_world(mat_x + 1, mat_y - 1) && get_material(mat_x + 1, mat_y - 1) == nullptr)
+		if(mat->property & Properties::UP_SIDE && in_world(mat_x + 1, mat_y) && get_material(mat_x + 1, mat_y) == nullptr && in_world(mat_x + 1, mat_y - 1) && get_material(mat_x + 1, mat_y - 1) == nullptr)
 		{
 			min_x = std::min(mat_x, min_x);
 			min_y = std::min(mat_y - 1, min_y);
@@ -409,7 +507,7 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			assert(min_x <= max_x && min_y <= max_y);
 			is_dirty = 1;
 		}
-		else if(mat->property & Properties::UP_SIDE && in_world(mat_x - 1, mat_y) && get_material(mat_x - 1, mat_y) == nullptr && in_world(mat_x - 1, mat_y - 1) && get_material(mat_x - 1, mat_y - 1) == nullptr)
+		if(mat->property & Properties::UP_SIDE && in_world(mat_x - 1, mat_y) && get_material(mat_x - 1, mat_y) == nullptr && in_world(mat_x - 1, mat_y - 1) && get_material(mat_x - 1, mat_y - 1) == nullptr)
 		{
 			min_x = std::min(mat_x - 1, min_x);
 			min_y = std::min(mat_y - 1, min_y);
@@ -418,7 +516,7 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			assert(min_x <= max_x && min_y <= max_y);
 			is_dirty = 1;
 		}
-		else if(mat->property & Properties::SIDE)
+		if(mat->property & Properties::SIDE)
 		{
 			int curr_offset = 1;
 			while(in_world(mat_x - curr_offset, mat_y) && get_material(mat_x - curr_offset, mat_y) == nullptr && curr_offset <= check_side_cells){
@@ -434,14 +532,14 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 				is_dirty = 1;
 			}
 		}
-		else if(mat->property & Properties::SIDE)
+		if(mat->property & Properties::SIDE)
 		{
 			int curr_offset = 1;
 			while(in_world(mat_x + curr_offset, mat_y) && get_material(mat_x + curr_offset, mat_y) == nullptr && curr_offset <= check_side_cells){
 				curr_offset ++;
 			}
 
-			if(curr_offset > 0)
+			if(curr_offset > 1)
 			{
 				min_x = std::min(mat_x - curr_offset + 1, min_x);
 				min_y = std::min(mat_y, min_y);
@@ -472,15 +570,21 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 		modify_rect(chunk, &upper_rect, &lower_rect); 
 	}
 	else{
+		std::cout << "The chunk " << print_pos(chunk->coords.x, chunk->coords.y) << " is asleep.\n";
 		chunk->asleep = 1;
 	}
 }
 
+void ChunkHandler::fire_water_rxn(Chunk* chunk, Material* fire, Material* water)
+{
+	fire->health -= 5;
+	set_material_properties(water, SMOKE, &water->position);
+}
 void ChunkHandler::water_sand_rxn(Chunk* chunk, Material* water, Material* sand)
 {
 	Move sand_move{{sand->position.x, sand->position.y}, {water->position.x, water->position.y}};
 	chunk->asleep = 0;
-	chunk->swap_list.push_back(sand_move);
+	swap_list.push_back(sand_move);
 }
 
 void ChunkHandler::acid_mat_rxn(Chunk* chunk, Material* acid, Material* other)
@@ -496,7 +600,7 @@ void ChunkHandler::smoke_falling_rxn(Chunk* chunk, Material* smoke, Material* ot
 {
 	Move smoke_move{smoke->position, other->position};
 	chunk->asleep = 0;
-	chunk->swap_list.push_back(smoke_move);
+	swap_list.push_back(smoke_move);
 }
 
 void ChunkHandler::react(Chunk* chunk, Material* m1, Material* m2)
@@ -513,9 +617,43 @@ void ChunkHandler::react(Chunk* chunk, Material* m1, Material* m2)
 	{
 		smoke_falling_rxn(chunk, m1, m2);
 	}
+	if(m1->material == FIRE && m2->material == WATER)
+	{
+		fire_water_rxn(chunk, m1, m2);
+	}
+	if(m1->material == WATER && m2->material == FIRE)
+	{
+		fire_water_rxn(chunk, m2, m1);
+	}
 
 }
 
+
+bool ChunkHandler::update_short_lived(Material* material)
+{
+
+	if(rand() % 2 == 1)
+	{
+		material->health -= 1;
+	}
+
+	if(material->material == MatType::FIRE){
+		if(material->health <= 0){ 
+			set_material_properties(material, MatType::SMOKE, &material->position);
+			remove_from_anim_list(material);
+		}
+		else if(material->tex_offset == tex_coords.FIRE_CHANGE_COLOR && !in_anim_list(material)){
+			animation_list.push_back({material, tex_coords.FIRE, 33});
+		}
+		else if(material->tex_offset == tex_coords.FIRE && !in_anim_list(material)){
+			animation_list.push_back({material, tex_coords.FIRE_CHANGE_COLOR, 33});
+		}
+	}
+	else if(material->health <= 0){
+		destroy_material(material);
+	}
+	return false;
+}
 
 bool ChunkHandler::update_down(Chunk* chunk, Material* material, const float dT)
 {
@@ -546,7 +684,7 @@ bool ChunkHandler::update_down(Chunk* chunk, Material* material, const float dT)
 	}
 
 	Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-	chunk->move_list.push_back(new_move);
+	move_list.push_back(new_move);
 	return true;
 }
 
@@ -564,7 +702,7 @@ bool ChunkHandler::update_up(Chunk* chunk, Material* material)
 	{
 		vector2 new_pos {material->position.x, material->position.y - 1};
 		Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		chunk->move_list.push_back(new_move);
+		move_list.push_back(new_move);
 		return true;
 	}
 	return false;
@@ -614,14 +752,14 @@ bool ChunkHandler::update_side_up(Chunk* chunk, Material* material)
 	{
 		vector2 new_pos {material->position.x - 1, material->position.y - 1};
 		Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		chunk->move_list.push_back(new_move);
+		move_list.push_back(new_move);
 		return true;
 	}
 	else if(direction == 1)
 	{
 		vector2 new_pos {material->position.x + 1, material->position.y - 1};
 		Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		chunk->move_list.push_back(new_move);
+		move_list.push_back(new_move);
 		return true;
 	}
 	return false;
@@ -667,13 +805,13 @@ bool ChunkHandler::update_side(Chunk* chunk, Material* material)
 	else if(left)
 	{
 		Move move {{material->position.x, material->position.y}, {new_pos.x - curr_offset + 1, new_pos.y}};
-		chunk->move_list.push_back(move);
+		move_list.push_back(move);
 		return true;
 	}
 	else if(right)
 	{
 		Move move {{material->position.x, material->position.y}, {new_pos.x + curr_offset - 1, new_pos.y}};
-		chunk->move_list.push_back(move);
+		move_list.push_back(move);
 		return true;
 	}
 
@@ -698,13 +836,13 @@ bool ChunkHandler::update_side(Chunk* chunk, Material* material)
 	else if(left)
 	{
 		Move move {{material->position.x, material->position.y}, {new_pos.x - curr_offset + 1, new_pos.y}};
-		chunk->move_list.push_back(move);
+		move_list.push_back(move);
 		return true;
 	}
 	else if(right)
 	{
 		Move move {{material->position.x, material->position.y}, {new_pos.x + curr_offset - 1, new_pos.y}};
-		chunk->move_list.push_back(move);
+		move_list.push_back(move);
 		return true;
 	}
 	assert(false);
@@ -753,14 +891,14 @@ bool ChunkHandler::update_side_down(Chunk* chunk, Material* material)
 	{
 		vector2 new_pos {material->position.x - 1, material->position.y + 1};
 		Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		chunk->move_list.push_back(new_move);
+		move_list.push_back(new_move);
 		return true;
 	}
 	else if(direction == 1)
 	{
 		vector2 new_pos {material->position.x + 1, material->position.y + 1};
 		Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		chunk->move_list.push_back(new_move);
+		move_list.push_back(new_move);
 		return true;
 	}
 	return false;
@@ -792,8 +930,12 @@ void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 			continue;
 		}
 
-		assert(chunk->move_list.size() >= 0);
+		assert(move_list.size() >= 0);
 		bool moved = false;
+		if(mat->property & Properties::SHORT_LIVED && !moved)
+		{
+			moved = update_short_lived(mat);
+		}
 		if(mat->property & Properties::DOWN && !moved)
 		{
 			moved = update_down(chunk, mat, dT);
@@ -823,16 +965,6 @@ void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 		}
 
 	}
-}
-
-ChunkHandler::Chunk* ChunkHandler::get_chunk(int x, int y)
-{
-	vector2 chunk_coords {x/chunk_width, y/chunk_height};
-	if(chunks.find(chunk_coords) == chunks.end())
-	{
-		return nullptr;
-	}
-	return chunks[chunk_coords];
 }
 
 
@@ -896,40 +1028,43 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material)
 }
 
 
-void ChunkHandler::commit_changes(Chunk* chunk)
+void ChunkHandler::commit_changes()
 {
 
-
-
-	if(chunk->num_materials == 0)
-	{
-		return;
-	}
-
-	std::vector<Move>& iter_moves = chunk->move_list;
-	std::vector<Move>& iter_swap = chunk->swap_list;
-	std::shuffle(iter_moves.begin(), iter_moves.end(), gen);
-	std::shuffle(iter_swap.begin(), iter_swap.end(), gen);
+	std::shuffle(move_list.begin(), move_list.end(), gen);
+	std::shuffle(swap_list.begin(), swap_list.end(), gen);
+	std::shuffle(animation_list.begin(), animation_list.end(), gen);
 	Material* material;
 
-	const size_t num_moves = iter_moves.size()/2;
-	const size_t num_swaps = iter_swap.size()/2;
+	const size_t num_moves = move_list.size()/2;
+	const size_t num_swaps = swap_list.size()/2;
 	for(size_t i = 0; i < num_moves; i ++)
 	{
-		Move move = iter_moves[i];
+		Move move = move_list[i];
 		material = get_material(move.old_pos.x, move.old_pos.y);
-		move_material(chunk, material, &move.old_pos, &move.new_pos);
-		iter_moves[i] = iter_moves.back();
-		iter_moves.pop_back();
+		move_material(get_chunk(move.old_pos.x, move.old_pos.y), material, &move.old_pos, &move.new_pos);
+		move_list[i] = move_list.back();
+		move_list.pop_back();
 	}
 
-	for(size_t i = 0; i < iter_swap.size(); i ++)
+	for(size_t i = 0; i < swap_list.size(); i ++)
 	{
-		Move move = iter_swap[i];
+		Move move = swap_list[i];
 		material = get_material(move.old_pos.x, move.old_pos.y);
-		swap_material(chunk, material, &move.old_pos, &move.new_pos);
+		swap_material(get_chunk(move.old_pos.x, move.old_pos.y), material, &move.old_pos, &move.new_pos);
 	}
-	iter_swap.clear();
+
+
+	for(size_t i = 0; i < animation_list.size(); i ++){
+		animation_list[i].material->tex_offset = animation_list[i].color_change;
+		animation_list[i].frames --;
+		if(animation_list[i].frames == 0){
+			animation_list[i] = animation_list.back();
+			animation_list.pop_back();
+		}
+	}
+
+	swap_list.clear();
 }
 
 void ChunkHandler::draw_chunk(Chunk* chunk, Renderer* render)
@@ -954,30 +1089,15 @@ void ChunkHandler::draw_chunk(Chunk* chunk, Renderer* render)
 
 ChunkHandler::~ChunkHandler()
 {
-	free_arena(material_arena);
+	assert(free_arena(material_arena) == 0);
+	move_list.clear();
+	swap_list.clear();
 	chunks.clear();
 	for(int i = 0; i < iter_chunks.size(); i ++)
 	{
 		iter_chunks[i]->materials.clear();
-		iter_chunks[i]->move_list.clear();
-		iter_chunks[i]->swap_list.clear();
 		iter_chunks[i]->update_list.clear();
 	}
 }
 
-size_t ChunkHandler::index(int x, int y)
-{
-	size_t i = ((y % chunk_height) * chunk_width) + (x % chunk_width);
-	//assert(i >= 0 && i < chunk_width * chunk_height);
-	return ((y % chunk_height) * chunk_width) + (x % chunk_width);
-};
 
-
-void ChunkHandler::no_swap_in_move(Chunk* chunk){
-	for(int i = 0; i < chunk->swap_list.size(); i ++){
-		assert(std::find_if(chunk->move_list.begin(), chunk->move_list.end(),  [&i, chunk](const Move& move){
-			return move.old_pos == chunk->swap_list[i].old_pos && move.new_pos == chunk->swap_list[i].new_pos;
-		}) == chunk->move_list.end());
-	}
-
-}

@@ -45,6 +45,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		material_type = MatType::SMOKE;
 	}
+	else if(key == GLFW_KEY_6 && action == GLFW_PRESS)
+	{
+		material_type = MatType::WOOD;
+	}
+	else if(key == GLFW_KEY_7 && action == GLFW_PRESS)
+	{
+		material_type = MatType::FIRE;
+	}
 }
 
 void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos)

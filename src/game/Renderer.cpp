@@ -68,7 +68,10 @@ void Renderer::initRenderData()
 		15, 94, 156, 255, //water color
 		136, 140, 141, 255, //stone color
 		102, 255, 102, 255, //acid color
-		132, 147, 156, 127, //smoke color
+		132, 147, 156, 50, //smoke color
+		79, 48, 31, 255,   //wood color
+		255, 99, 0, 255,   //fire color
+		255, 0, 0, 255,    //change fire color
 		170, 255, 0, 255,  //dirty rect debug color
 		255, 0, 0, 255 //grid debug color
 	};
@@ -80,7 +83,7 @@ void Renderer::initRenderData()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 7, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 10, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
 
 
 	compile_shaders();
