@@ -17,7 +17,8 @@ include_directories("/usr/include/x86_64-linux-gnu")
 
 add_library(glad ${CMAKE_CURRENT_SOURCE_DIR}/glad/src/glad.c)
 add_library(arena ${CMAKE_CURRENT_SOURCE_DIR}/src/arenas/Arena.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/arenas/PoolArena.cpp)
-add_library(world ${CMAKE_CURRENT_SOURCE_DIR}/src/game/World.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/game/ChunkHandler.cpp )
+add_library(world ${CMAKE_CURRENT_SOURCE_DIR}/src/game/World.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/game/ChunkHandler.cpp 
+${CMAKE_CURRENT_SOURCE_DIR}/src/game/Elements.cpp)
 add_library(render ${CMAKE_CURRENT_SOURCE_DIR}/src/game/Renderer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader_util.cpp)
 add_library(utilities ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities/SwapbackArray.cpp)
 
