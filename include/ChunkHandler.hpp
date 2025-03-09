@@ -1,5 +1,6 @@
 #ifndef CHUNKHANNDLER_H
 #define CHUNKHANNDLER_H
+#include "Elements.hpp"
 #include <cassert>
 #include <string>
 #include <Renderer.hpp>
@@ -14,11 +15,8 @@ class ChunkHandler
 {
 
 	PoolArena* material_arena;
-	MatTexCoords tex_coords;
 	int x_chunks;
 	int y_chunks;
-	int world_width;
-	int world_height;
 
 
 public:
@@ -57,13 +55,17 @@ public:
 	std::vector<Chunk*> iter_chunks;
 	std::vector<Animation> animation_list;
 	std::unordered_map<vector2, Chunk*, vector_hash> chunks;
+	MatTexCoords tex_coords;
+	Elements element_updater;
 	int chunk_width;
 	int chunk_height;
 	int chunk_size;
+	int world_width;
+	int world_height;
 	const float g_force = 2;
 	const int fast_liquid_spread = 5;
 
-	vector2 get_rxn_coord(Material* material);
+	std::vector<vector2> get_rxn_coord(Material* material);
 	std::string print_pos(int x, int y);
 	inline size_t index(int x, int y)
 	{
@@ -71,15 +73,8 @@ public:
 	};
 	inline Material* get_material(int x, int y)
 	{
-		vector2 chunk_coords {x/chunk_width, y/chunk_height};
-
-		if(chunks.find(chunk_coords) == chunks.end())
-		{
-			return nullptr;
-		}
-
-
-		return chunks[chunk_coords]->materials[index(x, y)];
+		Chunk* chunk = get_chunk(x, y);
+		return chunk != nullptr? chunk->materials[index(x, y)]: nullptr;
 	}
 	;
 
@@ -105,23 +100,15 @@ public:
 
 	inline Chunk* get_chunk(int x, int y){
 		vector2 chunk_coords {x/chunk_width, y/chunk_height};
-		if(chunks.find(chunk_coords) == chunks.end())
-		{
-			return nullptr;
-		}
-		return chunks[chunk_coords];
+		auto it = chunks.find(chunk_coords);
+		return it != chunks.end()? it->second: nullptr;
 	};
 	Chunk* init_chunk(int mat_x, int mat_y);
 
 	inline bool in_world(int x, int y){
 		return x >= 0 && x < world_width && y >= 0 && y < world_height;
 	};
-	bool update_short_lived(Material* material);
-	bool update_down(Chunk* chunk, Material* material, const float dT);
-	bool update_side(Chunk* chunk, Material* material);
-	bool update_side_down(Chunk* chunk, Material* material);
-	bool update_up(Chunk* chunk, Material* material);
-	bool update_side_up(Chunk* chunk, Material* material);
+
 	bool in_anim_list(Material* material);
 	~ChunkHandler();
 

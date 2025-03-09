@@ -5,9 +5,10 @@ logs/
 glfw-3.4/
 CMakeLists.txt
 compile.sh
-create_graph.sh
+flame.sh
 perf.data
 perf.data.old
-sim.perf-folded
-sim.svg
+out.folded
+out.perf
+perf.svg
 cachegrind.*

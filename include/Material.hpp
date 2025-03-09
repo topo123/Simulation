@@ -15,10 +15,17 @@ enum Properties{
 };
 
 enum ReactionProperties{
-	FLAMMABLE = 0b01,
-	STABLE = 0b00
+	ACID_DESTROY = 0b1000,
+	DISPLACIBLE = 0b0100,
+	FLAMMABLE = 0b0010,
+	STABLE = 0b0000
 };
 
+enum State{
+	BURNING,
+	NORMAL,
+	CONDUCTING
+};
 
 
 struct fvector2{
@@ -87,6 +94,7 @@ struct Material
 	fvector2 velocity {0, 0};
 	MatType material = MatType::NONE;
 	Properties property = Properties::STATIC;
+	State state = State::NORMAL;
 	ReactionProperties reaction = ReactionProperties::STABLE;
 	float tex_offset;
 	int health;
