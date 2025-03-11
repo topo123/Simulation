@@ -10,26 +10,12 @@
 
 void ChunkHandler::remove_from_anim_list(Material* material)
 {
-	for(int i = 0; i < animation_list.size(); i ++)
-	{
-		if(animation_list[i].material == material)
-		{
-			animation_list[i] = animation_list.back();
-			animation_list.pop_back();
-		}
-	}
+	animation_list.erase(material);
 }
 
 
 bool ChunkHandler::in_anim_list(Material* material){
-	for(int i = 0; i < animation_list.size(); i ++)
-	{
-		if(animation_list[i].material == material)
-		{
-			return true;
-		}
-	}
-	return false;
+	return animation_list.find(material) != animation_list.end();
 }
 
 void ChunkHandler::set_material_properties(Material* material, MatType type, vector2* pos)
@@ -46,6 +32,7 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 		material->tex_offset = tex_coords.WATER;
 		material->property = static_cast<Properties>(DOWN_SIDE + DOWN + SIDE);
 		material->reaction = static_cast<ReactionProperties>(DISPLACIBLE + ACID_DESTROY);
+		material->react_direct = static_cast<ReactionDirection>(RNONE);
 	}
 	else if(type == SAND)
 	{
@@ -53,6 +40,7 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 		material->tex_offset = tex_coords.SAND;
 		material->property = static_cast<Properties>(DOWN + DOWN_SIDE);
 		material->reaction = static_cast<ReactionProperties>(ACID_DESTROY);
+		material->react_direct = static_cast<ReactionDirection>(RDOWN);
 	}
 	else if(type == STONE)
 	{
@@ -60,6 +48,7 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 		material->tex_offset = tex_coords.STONE;
 		material->property = static_cast<Properties>(STATIC);
 		material->reaction = static_cast<ReactionProperties>(ACID_DESTROY);
+		material->react_direct = static_cast<ReactionDirection>(RNONE);
 	}
 	else if(type == ACID)
 	{
@@ -67,13 +56,15 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 		material->health = 200;
 		material->property = static_cast<Properties>(DOWN_SIDE + DOWN + SIDE);
 		material->reaction = static_cast<ReactionProperties>(DISPLACIBLE);
+		material->react_direct = static_cast<ReactionDirection>(AROUND);
 	}
 	else if(type == SMOKE)
 	{
 		material->tex_offset = tex_coords.SMOKE;
 		material->health = 200;
-		material->property = static_cast<Properties>(UP_SIDE + UP);
+		material->property = static_cast<Properties>(UP_SIDE + UP + SHORT_LIVED);
 		material->reaction = static_cast<ReactionProperties>(NONE);
+		material->react_direct = static_cast<ReactionDirection>(RUP);
 	}
 	else if(type == WOOD)
 	{
@@ -81,6 +72,7 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 		material->health = 500;
 		material->property = static_cast<Properties>(STATIC);
 		material->reaction = static_cast<ReactionProperties>(FLAMMABLE + ACID_DESTROY);
+		material->react_direct = static_cast<ReactionDirection>(RNONE);
 	}
 	else if(type == FIRE)
 	{
@@ -88,6 +80,15 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 		material->health = 200;
 		material->property = static_cast<Properties>(STATIC + SHORT_LIVED);
 		material->reaction = static_cast<ReactionProperties>(NONE);
+		material->react_direct = static_cast<ReactionDirection>(RNONE);
+	}
+	else if(type == OIL)
+	{
+		material->tex_offset = tex_coords.OIL;
+		material->health = 500;
+		material->property = static_cast<Properties>(DOWN + DOWN_SIDE + SIDE);
+		material->reaction = static_cast<ReactionProperties>(FLAMMABLE + ACID_DESTROY + DISPLACIBLE);
+		material->react_direct = static_cast<ReactionDirection>(AROUND);
 	}
 }
 
@@ -158,51 +159,113 @@ bool ChunkHandler::can_react(Material* m1, Material* m2)
 
 std::vector<vector2> ChunkHandler::get_rxn_coord(Material* material)
 {
+	std::vector<vector2> possible_reactions;
+
+	if(material->react_direct == RNONE){
+		return possible_reactions;
+	}
+
 	vector2 mat_pos{material->position.x, material->position.y};
-	Material* up = in_world(mat_pos.x, mat_pos.y - 1)? get_material(material->position.x, material->position.y - 1): nullptr;
-	Material* down = in_world(mat_pos.x, mat_pos.y + 1)? get_material(material->position.x, material->position.y + 1): nullptr;
-	Material* up_left = in_world(mat_pos.x - 1, mat_pos.y - 1)? get_material(material->position.x - 1, material->position.y - 1): nullptr;
-	Material* up_right = in_world(mat_pos.x + 1, mat_pos.y - 1)? get_material(material->position.x + 1, material->position.y - 1): nullptr;
-	Material* left = in_world(mat_pos.x - 1, mat_pos.y)? get_material(material->position.x - 1, material->position.y): nullptr;
-	Material* right = in_world(mat_pos.x + 1, mat_pos.y)? get_material(material->position.x + 1, material->position.y): nullptr;
-	Material* down_left = in_world(mat_pos.x - 1, mat_pos.y + 1)? get_material(material->position.x - 1, material->position.y + 1): nullptr;
-	Material* down_right = in_world(mat_pos.x + 1, mat_pos.y + 1)? get_material(material->position.x + 1, material->position.y + 1): nullptr;
 
-	std::vector<vector2> react_pos;
-	if(up != nullptr && can_react(material, up))
+	if(material->react_direct == RDOWN)
 	{
-		react_pos.push_back({up->position.x, up->position.y});
-	}
-	if(down != nullptr && can_react(material, down))
-	{
-		react_pos.push_back({down->position.x, down->position.y});
-	}
-	if(up_left != nullptr && can_react(material, up_left))
-	{
-		react_pos.push_back({up_left->position.x, up_left->position.y});
-	}
-	if(up_right != nullptr && can_react(material, up_right))
-	{
-		react_pos.push_back({up_right->position.x, up_right->position.y});
-	}
-	if(down_right != nullptr && can_react(material, down_right))
-	{
-		react_pos.push_back({down_right->position.x, down_right->position.y});
-	}
-	if(down_left != nullptr && can_react(material, down_left))
-	{
-		react_pos.push_back({down_left->position.x, down_left->position.y});
-	}
-	if(left != nullptr && can_react(material, left))
-	{
-		react_pos.push_back({left->position.x, left->position.y});
-	}
-	if(right != nullptr && can_react(material, right))
-	{
-		react_pos.push_back({right->position.x, right->position.y});
+		Material* down = in_world(mat_pos.x, mat_pos.y + 1)? get_material(material->position.x, material->position.y + 1): nullptr;
+		Material* down_left = in_world(mat_pos.x - 1, mat_pos.y + 1)? get_material(material->position.x - 1, material->position.y + 1): nullptr;
+		Material* down_right = in_world(mat_pos.x + 1, mat_pos.y + 1)? get_material(material->position.x + 1, material->position.y + 1): nullptr;
+		if(down != nullptr && can_react(material, down))
+		{
+			possible_reactions.push_back(down->position);
+		}
+		if(down_left != nullptr && can_react(material, down_left))
+		{
+			possible_reactions.push_back(down_left->position);
+		}
+		if(down_right != nullptr && can_react(material, down_right))
+		{
+			possible_reactions.push_back(down_right->position);
+		}
 	}
 
-	return react_pos;
+
+	if(material->react_direct == RUP)
+	{
+		Material* up = in_world(mat_pos.x, mat_pos.y - 1)? get_material(material->position.x, material->position.y - 1): nullptr;
+		Material* up_left = in_world(mat_pos.x - 1, mat_pos.y - 1)? get_material(material->position.x - 1, material->position.y - 1): nullptr;
+		Material* up_right = in_world(mat_pos.x + 1, mat_pos.y - 1)? get_material(material->position.x + 1, material->position.y - 1): nullptr;
+		if(up != nullptr && can_react(material, up))
+		{
+			possible_reactions.push_back(up->position);
+		}
+		if(up_left != nullptr && can_react(material, up_left))
+		{
+			possible_reactions.push_back(up_left->position);
+		}
+		if(up_right != nullptr && can_react(material, up_right))
+		{
+			possible_reactions.push_back(up_right->position);
+		}
+	}
+
+
+	if(material->react_direct == RSIDE)
+	{
+		Material* left = in_world(mat_pos.x - 1, mat_pos.y)? get_material(material->position.x - 1, material->position.y): nullptr;
+		Material* right = in_world(mat_pos.x + 1, mat_pos.y)? get_material(material->position.x + 1, material->position.y): nullptr;
+		if(left != nullptr && can_react(material, left))
+		{
+			possible_reactions.push_back({left->position.x, left->position.y});
+		}
+		if(right != nullptr && can_react(material, right))
+		{
+			possible_reactions.push_back({right->position.x, right->position.y});
+		}
+	}
+
+	if(material->react_direct == AROUND || material->state == BURNING)
+	{
+		Material* up = in_world(mat_pos.x, mat_pos.y - 1)? get_material(material->position.x, material->position.y - 1): nullptr;
+		Material* down = in_world(mat_pos.x, mat_pos.y + 1)? get_material(material->position.x, material->position.y + 1): nullptr;
+		Material* up_left = in_world(mat_pos.x - 1, mat_pos.y - 1)? get_material(material->position.x - 1, material->position.y - 1): nullptr;
+		Material* up_right = in_world(mat_pos.x + 1, mat_pos.y - 1)? get_material(material->position.x + 1, material->position.y - 1): nullptr;
+		Material* left = in_world(mat_pos.x - 1, mat_pos.y)? get_material(material->position.x - 1, material->position.y): nullptr;
+		Material* right = in_world(mat_pos.x + 1, mat_pos.y)? get_material(material->position.x + 1, material->position.y): nullptr;
+		Material* down_left = in_world(mat_pos.x - 1, mat_pos.y + 1)? get_material(material->position.x - 1, material->position.y + 1): nullptr;
+		Material* down_right = in_world(mat_pos.x + 1, mat_pos.y + 1)? get_material(material->position.x + 1, material->position.y + 1): nullptr;
+		if(up != nullptr && can_react(material, up))
+		{
+			possible_reactions.push_back(up->position);
+		}
+		if(down != nullptr && can_react(material, down))
+		{
+			possible_reactions.push_back(down->position);
+		}
+		if(up_left != nullptr && can_react(material, up_left))
+		{
+			possible_reactions.push_back(up_left->position);
+		}
+		if(up_right != nullptr && can_react(material, up_right))
+		{
+			possible_reactions.push_back(up_right->position);
+		}
+		if(down_right != nullptr && can_react(material, down_right))
+		{
+			possible_reactions.push_back(down_right->position);
+		}
+		if(down_left != nullptr && can_react(material, down_left))
+		{
+			possible_reactions.push_back(down_left->position);
+		}
+		if(left != nullptr && can_react(material, left))
+		{
+			possible_reactions.push_back(left->position);
+		}
+		if(right != nullptr && can_react(material, right))
+		{
+			possible_reactions.push_back(right->position);
+		}
+	}
+
+	return possible_reactions;
 }
 
 void ChunkHandler::move_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos)
@@ -622,6 +685,11 @@ void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 	}
 
 	make_dirty_rect(chunk);
+	std::cout << "Waking up a neighboring chunk" << std::endl;
+	if(chunk->asleep == 0)
+	{
+		wake_up_neighbor_chunks(chunk);
+	}
 
 	if(chunk->d_upper.x == INT_MAX)
 	{
@@ -660,6 +728,10 @@ void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 		else if(mat->material == ACID)
 		{
 			element_updater.update_acid(mat, dT);
+		}
+		else if(mat->material == OIL)
+		{
+			element_updater.update_oil(mat, dT);
 		}
 
 
@@ -727,13 +799,57 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material)
 	}
 }
 
+void ChunkHandler::wake_up_neighbor_chunks(Chunk* chunk)
+{
+	auto up = chunks.find({chunk->coords.x, chunk->coords.y - 1});
+	auto down = chunks.find({chunk->coords.x, chunk->coords.y + 1});
+	auto left = chunks.find({chunk->coords.x - 1, chunk->coords.y});
+	auto right = chunks.find({chunk->coords.x + 1, chunk->coords.y});
+	auto up_left = chunks.find({chunk->coords.x - 1, chunk->coords.y - 1});
+	auto up_right = chunks.find({chunk->coords.x + 1, chunk->coords.y - 1});
+	auto down_left = chunks.find({chunk->coords.x - 1, chunk->coords.y + 1});
+	auto down_right = chunks.find({chunk->coords.x + 1, chunk->coords.y + 1});
+
+	if(up != chunks.end())
+	{
+		up->second->asleep = 0;
+	}
+	if(down != chunks.end())
+	{
+		down->second->asleep = 0;
+	}
+	if(left != chunks.end())
+	{
+		left->second->asleep = 0;
+	}
+	if(right != chunks.end())
+	{
+		right->second->asleep = 0;
+	}
+	if(up_left != chunks.end())
+	{
+		up_left->second->asleep = 0;
+	}
+	if(up_right != chunks.end())
+	{
+		up_right->second->asleep = 0;
+	}
+	if(down_left != chunks.end())
+	{
+		down_left->second->asleep = 0;
+	}
+	if(down_right != chunks.end())
+	{
+		down_right->second->asleep = 0;
+	}
+
+}
 
 void ChunkHandler::commit_changes()
 {
 
 	std::shuffle(move_list.begin(), move_list.end(), gen);
 	std::shuffle(swap_list.begin(), swap_list.end(), gen);
-	std::shuffle(animation_list.begin(), animation_list.end(), gen);
 	Material* material;
 
 	const size_t num_moves = move_list.size()/2;
@@ -754,29 +870,38 @@ void ChunkHandler::commit_changes()
 		swap_material(get_chunk(move.old_pos.x, move.old_pos.y), material, &move.old_pos, &move.new_pos);
 	}
 
-
-	for(size_t i = 0; i < animation_list.size(); i ++){
-		animation_list[i].material->tex_offset = animation_list[i].color_change;
-		animation_list[i].frames --;
-		if(animation_list[i].frames == 0){
-			animation_list[i] = animation_list.back();
-			animation_list.pop_back();
+	Animation* animation;
+	std::vector<Material*> clear_list;
+	for(auto i = animation_list.begin(); i != animation_list.end(); i ++){
+		animation = &(i->second);
+		i->first->tex_offset = animation->color_change;
+		animation->frames --;
+		if(animation->frames == 0){
+			clear_list.push_back(i->first);
 		}
+	}
+
+	for(size_t i = 0; i < clear_list.size(); i ++)
+	{
+		animation_list.erase(clear_list[i]);
 	}
 
 	swap_list.clear();
 }
 
-void ChunkHandler::draw_chunk(Chunk* chunk, Renderer* render)
+void ChunkHandler::draw_chunk(Chunk* chunk, Renderer* render, bool debug_mode)
 {
 	const std::vector<Material*>& particles = chunk->materials;
-	vector2 end_coords;
-	end_coords.x = (chunk->coords.x * chunk_width) + chunk_width;
-	end_coords.y = (chunk->coords.y * chunk_height) + chunk_height;
-	vector2 start_coords {chunk->coords.x * chunk_width, chunk->coords.y * chunk_height};
-	render->draw_rect(start_coords, end_coords, tex_coords.GRID_DEBUG);
-	render->draw_rect(chunk->d_upper, chunk->d_lower, tex_coords.DIRTY_DEBUG);
-	vector2 mat_size {1, 1};
+	if(debug_mode)
+	{
+		vector2 end_coords;
+		end_coords.x = (chunk->coords.x * chunk_width) + chunk_width;
+		end_coords.y = (chunk->coords.y * chunk_height) + chunk_height;
+		vector2 start_coords {chunk->coords.x * chunk_width, chunk->coords.y * chunk_height};
+		render->draw_rect(start_coords, end_coords, tex_coords.GRID_DEBUG);
+		render->draw_rect(chunk->d_upper, chunk->d_lower, tex_coords.DIRTY_DEBUG);
+	}
+	static vector2 mat_size {1, 1};
 	for(size_t i = 0; i < chunk_size; i ++)
 	{
 		Material* mat = particles[i];

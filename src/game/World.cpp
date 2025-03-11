@@ -240,12 +240,12 @@ void World::update_world(const float dT)
 	handler.delete_chunks.clear();
 }
 
-void World::draw_world()
+void World::draw_world(bool debug_mode)
 {
 
 	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
 	{
-		handler.draw_chunk(chunk, &render);
+		handler.draw_chunk(chunk, &render, debug_mode);
 	}
 }
 

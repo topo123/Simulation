@@ -2,7 +2,7 @@
 #define MATERIAL_H
 #include <functional>
 
-#define NUM_COLORS 10.0f
+#define NUM_COLORS 11.0f
 
 enum Properties{
 	STATIC = 0b00000000,
@@ -12,6 +12,14 @@ enum Properties{
 	UP = 0b00001000,
 	UP_SIDE = 0b00010000,
 	SHORT_LIVED = 0b00100000
+};
+
+enum ReactionDirection{
+	RDOWN = 0b10000,
+	RUP = 0b01000,
+	RSIDE = 0b00100,
+	AROUND = 0b00010,
+	RNONE = 0b00001
 };
 
 enum ReactionProperties{
@@ -71,7 +79,8 @@ enum MatType
 	WOOD,
 	STONE,
 	ACID,
-	NITRO
+	NITRO,
+	OIL
 };
 
 struct MatTexCoords
@@ -84,8 +93,9 @@ struct MatTexCoords
 	const float WOOD = {5.0f/NUM_COLORS};
 	const float FIRE = {6.0f/NUM_COLORS};
 	const float FIRE_CHANGE_COLOR = {7.0f/NUM_COLORS};
-	const float DIRTY_DEBUG = {8.0f/NUM_COLORS};
-	const float GRID_DEBUG = {9.0f/NUM_COLORS};
+	const float OIL = {8.0f/NUM_COLORS};
+	const float DIRTY_DEBUG = {9.0f/NUM_COLORS};
+	const float GRID_DEBUG = {10.0f/NUM_COLORS};
 };
 
 struct Material
@@ -96,6 +106,7 @@ struct Material
 	Properties property = Properties::STATIC;
 	State state = State::NORMAL;
 	ReactionProperties reaction = ReactionProperties::STABLE;
+	ReactionDirection react_direct = ReactionDirection::RUP;
 	float tex_offset;
 	int health;
 };

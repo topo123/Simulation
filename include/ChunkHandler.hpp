@@ -31,7 +31,6 @@ public:
 
 	struct Animation
 	{
-		Material* material;
 		float color_change;
 		int frames;
 	};
@@ -53,7 +52,7 @@ public:
 	std::vector<Chunk*> add_materials_list;
 	std::vector<Chunk*> delete_chunks;
 	std::vector<Chunk*> iter_chunks;
-	std::vector<Animation> animation_list;
+	std::unordered_map<Material*, Animation> animation_list;
 	std::unordered_map<vector2, Chunk*, vector_hash> chunks;
 	MatTexCoords tex_coords;
 	Elements element_updater;
@@ -91,15 +90,17 @@ public:
 	void init_chunk_handler(int chunk_width, int chunk_height, int world_width,  int world_height, PoolArena* arena);
 	void add_materials(const std::vector<Material*>& materials);
 	void update_chunk(Chunk* chunk, const float dT);
-	void draw_chunk(Chunk* chunk, Renderer* render);
+	void draw_chunk(Chunk* chunk, Renderer* render, bool debug_mode);
 	bool can_react(Material* m1, Material* m2);
 	void react(Chunk* chunk, Material* m1, Material* m2);
 	void move_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
 	void swap_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
 	void remove_from_anim_list(Material* material);
+	void wake_up_neighbor_chunks(Chunk* chunk);
 
 	inline Chunk* get_chunk(int x, int y){
 		vector2 chunk_coords {x/chunk_width, y/chunk_height};
+		if(chunk_coords.x >= x_chunks || chunk_coords.x < 0 || chunk_coords.y >= y_chunks || chunk_coords.y < 0) return nullptr;
 		auto it = chunks.find(chunk_coords);
 		return it != chunks.end()? it->second: nullptr;
 	};

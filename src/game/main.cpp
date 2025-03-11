@@ -10,6 +10,7 @@
 
 double mouse_x, mouse_y;
 bool paused = false;
+bool debug_mode = false;
 bool mousePressed = false;
 bool erase = false;
 MatType material_type = MatType::SAND;
@@ -52,6 +53,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	else if(key == GLFW_KEY_7 && action == GLFW_PRESS)
 	{
 		material_type = MatType::FIRE;
+	}
+	else if(key == GLFW_KEY_8 && action == GLFW_PRESS)
+	{
+		material_type = MatType::OIL;
+	}
+	else if(key == GLFW_KEY_G && action == GLFW_PRESS)
+	{
+		debug_mode = !debug_mode;
 	}
 }
 
@@ -194,7 +203,7 @@ void game_loop()
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		world.draw_world();
+		world.draw_world(debug_mode);
 		frame_accumulator -= FPS_SLICE;
 		glfwSwapBuffers(window);
 		glfwPollEvents();
