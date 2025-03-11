@@ -614,7 +614,6 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 		modify_rect(chunk, &upper_rect, &lower_rect); 
 	}
 	else{
-		std::cout << "The chunk " << print_pos(chunk->coords.x, chunk->coords.y) << " is asleep.\n";
 		chunk->asleep = 1;
 	}
 }
@@ -685,7 +684,6 @@ void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 	}
 
 	make_dirty_rect(chunk);
-	std::cout << "Waking up a neighboring chunk" << std::endl;
 	if(chunk->asleep == 0)
 	{
 		wake_up_neighbor_chunks(chunk);
