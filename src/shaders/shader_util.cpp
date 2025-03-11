@@ -74,6 +74,8 @@ Shader* get_shader(std::string vertex, std::string frag, Arena* shader_arena)
 	
 	shader->vertex_shader[vert_size - 1] = '\0';
 	shader->frag_shader[frag_size - 1] = '\0';
+	print_shader(shader->vertex_shader);
+	print_shader(shader->frag_shader);
 
 	return shader;
 }

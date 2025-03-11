@@ -69,6 +69,11 @@ int free_arena(PoolArena* arena)
 	assert(free_failure == 0);
 #endif
 
+#ifdef WIN32
+	int free_failure = VirtualFree(arena->arena_ptr, 0, MEM_RELEASE);
+	assert(free_failure == 0);
+#endif
+
 	FreeList* list = arena->list;
 	while(list != nullptr)
 	{

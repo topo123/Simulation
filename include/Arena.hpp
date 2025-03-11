@@ -9,7 +9,7 @@ struct Arena
 	size_t offset;
 };
 
-Arena* init_arena(size_t arena_size = 1024 * 1024 * 1024);
+Arena* init_arena(size_t arena_size = 1024 * 1024);
 int free_arena(Arena* arena);
 void* allocate(Arena* arena, size_t allocate_size);
 

@@ -11,7 +11,9 @@
 
 void Renderer::compile_shaders()
 {
+	std::cout << "Initializing the arena\n";
 	arena = init_arena();
+	std::cout << "Arena initialized\n";
 	shader = get_shader("src/shaders/frame_vert.vert", "src/shaders/frame_frag.frag", arena);
 	
 
@@ -21,11 +23,11 @@ void Renderer::compile_shaders()
 	glCompileShader(vShader);
 
 	int success;
-	char infoLog[512];
+	char infoLog[1024];
 	glGetShaderiv(vShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		glGetShaderInfoLog(vShader, 512, NULL, infoLog);
+		glGetShaderInfoLog(vShader, 1024, NULL, infoLog);
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
 
@@ -36,7 +38,7 @@ void Renderer::compile_shaders()
 	glGetShaderiv(fShader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		glGetShaderInfoLog(fShader, 512, NULL, infoLog);
+		glGetShaderInfoLog(fShader, 1024, NULL, infoLog);
 		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
 
@@ -46,8 +48,10 @@ void Renderer::compile_shaders()
 	glLinkProgram(shader_program);
 
 
+	std::cout << "Deleting the shaders\n";
 	glDeleteShader(vShader);
 	glDeleteShader(fShader);
+	std::cout << "Shaders deleted\n";
 
 	glUseProgram(shader_program);
 	glm::mat4 proj = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f, -1.0f, 1.0f);
@@ -56,7 +60,9 @@ void Renderer::compile_shaders()
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(proj));
 
 
+	std::cout << "Freeing the arean\n";
 	free_arena(arena);
+	std::cout << "Freed the arean\n";
 	shader->vertex_shader = nullptr;
 	shader->frag_shader = nullptr;
 }

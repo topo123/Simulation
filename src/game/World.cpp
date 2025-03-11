@@ -1,5 +1,6 @@
 #include <World.hpp>
 #include <cassert>
+#include <iostream>
 
 void World::init_world(int cW, int cH, int wW, int wH, PoolArena* material_arena)
 {
@@ -7,6 +8,7 @@ void World::init_world(int cW, int cH, int wW, int wH, PoolArena* material_arena
 	world_height = wH;
 	
 	arena = material_arena;
+	std::cout << "Initializing Render data\n";
 	render.initRenderData();
 	handler.init_chunk_handler(cW, cH, wW, wH, material_arena);
 }

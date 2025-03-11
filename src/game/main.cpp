@@ -156,7 +156,9 @@ void game_loop()
 	assert(success == 0);
 
 	std::cout << std::to_string(sizeof(Material)) << '\n';
+	std::cout << "Creating material arena\n";
 	PoolArena* arena = init_pool(800 * 600, sizeof(Material));
+	std::cout << "Creating world\n";
 	World world;
 	world.init_world(80, 60, 800, 600, arena);
 
