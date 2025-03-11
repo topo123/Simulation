@@ -1,6 +1,9 @@
 #ifdef linux
 #include <sys/mman.h>
 #endif
+#ifdef WIN32
+#include <memoryapi.h>
+#endif
 #include <cassert>
 #include <Arena.hpp>
 
