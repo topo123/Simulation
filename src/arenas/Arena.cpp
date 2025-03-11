@@ -1,4 +1,6 @@
+#ifdef linux
 #include <sys/mman.h>
+#endif
 #include <cassert>
 #include <Arena.hpp>
 
@@ -36,8 +38,8 @@ int free_arena(Arena* arena)
 void* allocate(Arena* arena, size_t allocate_size)
 {
 	size_t alloc_end_pos = arena->offset + allocate_size;
-	
-	
+
+
 	if(alloc_end_pos > arena->arena_size)
 	{
 		return nullptr;

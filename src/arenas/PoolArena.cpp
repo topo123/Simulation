@@ -1,5 +1,7 @@
 #include "PoolArena.hpp"
+#ifdef linux
 #include <sys/mman.h>
+#endif
 #include <cassert>
 
 
