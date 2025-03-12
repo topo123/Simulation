@@ -7,7 +7,7 @@ To build on windows you need cmake and ninja installed.
 ## Building on Windows:
 
 1. In the root directory of the project make a build directory 
-2. In the root directory of the project use the command: cmake -B build -G "Ninja
+2. In the root directory of the project use the command: cmake -B build -G "Ninja"
 2. Then run the command ninja -C build
 3. These should create the build files 
 
