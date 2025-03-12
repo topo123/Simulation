@@ -1,6 +1,7 @@
 #include <PoolArena.hpp>
 #include <ChunkHandler.hpp>
 #include <Renderer.hpp>
+#include <Material.hpp>
 
 class World
 {
@@ -11,6 +12,11 @@ public:
 	int world_width;
 	int world_height;
 	PoolArena* arena;
+	std::vector<serialized_material> save_materials;
+
+
+	void save_world(std::string name);
+	void load_world(std::string name);
 
 	void create_materials(int center_x, int center_y, int width, int height, MatType type);
 	void delete_materials(int center_x, int center_y, int width, int height);

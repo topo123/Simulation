@@ -74,15 +74,12 @@ public:
 	{
 		Chunk* chunk = get_chunk(x, y);
 		return chunk != nullptr? chunk->materials[index(x, y)]: nullptr;
-	}
-	;
+	};
+
+	bool in_anim_list(Material* material);
+	bool can_react(Material* m1, Material* m2);
 
 	void set_material_properties(Material* material, MatType type, vector2* pos);
-	void acid_mat_rxn(Chunk* chunk, Material* water, Material* other);
-	void water_sand_rxn(Chunk* chunk, Material* water, Material* sand);
-	void smoke_falling_rxn(Chunk* chunk, Material* smoke, Material* other);
-	void smoke_mat_rxn(Chunk* chunk, Material* smoke, Material* other);
-	void fire_water_rxn(Chunk* chunk, Material* fire, Material* water);
 	void destroy_material(Material* material);
 	void make_dirty_rect(Chunk* chunk);
 	void modify_rect(Chunk* chunk, vector2* old_pos, vector2* new_pos);
@@ -91,8 +88,6 @@ public:
 	void add_materials(const std::vector<Material*>& materials);
 	void update_chunk(Chunk* chunk, const float dT);
 	void draw_chunk(Chunk* chunk, Renderer* render, bool debug_mode);
-	bool can_react(Material* m1, Material* m2);
-	void react(Chunk* chunk, Material* m1, Material* m2);
 	void move_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
 	void swap_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
 	void remove_from_anim_list(Material* material);
@@ -110,7 +105,6 @@ public:
 		return x >= 0 && x < world_width && y >= 0 && y < world_height;
 	};
 
-	bool in_anim_list(Material* material);
 	~ChunkHandler();
 
 };

@@ -1,6 +1,7 @@
 #include <World.hpp>
 #include <cassert>
 #include <iostream>
+#include <fstream>
 
 void World::init_world(int cW, int cH, int wW, int wH, PoolArena* material_arena)
 {
@@ -251,4 +252,52 @@ void World::draw_world(bool debug_mode)
 	}
 }
 
+void World::load_world(std::string name)
+{
+	std::ifstream sim_read(name, std::ios::binary);
+	std::vector<Material*> materials;
+
+	while(sim_read.peek() != EOF)
+	{
+		Material* material = static_cast<Material*>(allocate(arena));
+		sim_read.read(reinterpret_cast<char*>(&material->position.x), sizeof(int));
+		sim_read.read(reinterpret_cast<char*>(&material->position.y), sizeof(int));
+		sim_read.read(reinterpret_cast<char*>(&material->velocity.x), sizeof(float));
+		sim_read.read(reinterpret_cast<char*>(&material->velocity.y), sizeof(float));
+		sim_read.read(reinterpret_cast<char*>(&material->material), sizeof(uint32_t));
+		handler.set_material_properties(material, material->material, &material->position);
+		materials.push_back(material);
+	}
+
+	handler.add_materials(materials);
+}
+
+
+void World::save_world(std::string name)
+{
+	int counter = 0;
+	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
+	{
+		for(Material* material: chunk->update_list)
+		{
+			save_materials.push_back({material->position.x, material->position.y, material->velocity.x, material->velocity.y, material->material});
+			counter ++;
+		}
+	}
+
+	std::cout << "Saved " << counter << " materials\n";
+
+	std::ofstream sim_write(name, std::ios::binary);
+	for(serialized_material mat: save_materials)
+	{
+		sim_write.write(reinterpret_cast<const char*>(&mat.x_pos), sizeof(int));
+		sim_write.write(reinterpret_cast<const char*>(&mat.y_pos), sizeof(int));
+		sim_write.write(reinterpret_cast<const char*>(&mat.x_vel), sizeof(float));
+		sim_write.write(reinterpret_cast<const char*>(&mat.y_vel), sizeof(float));
+		sim_write.write(reinterpret_cast<const char*>(&mat.material_type), sizeof(uint32_t));
+	}
+
+	sim_write.close();
+
+}
 

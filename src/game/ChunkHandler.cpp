@@ -1,5 +1,4 @@
 #include "Material.hpp"
-#include <iostream>
 #include <algorithm>
 #include <climits>
 #include <cstdint>
@@ -617,62 +616,6 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 		chunk->asleep = 1;
 	}
 }
-
-void ChunkHandler::fire_water_rxn(Chunk* chunk, Material* fire, Material* water)
-{
-	fire->health -= 5;
-	set_material_properties(water, SMOKE, &water->position);
-}
-void ChunkHandler::water_sand_rxn(Chunk* chunk, Material* water, Material* sand)
-{
-	Move sand_move{{sand->position.x, sand->position.y}, {water->position.x, water->position.y}};
-	chunk->asleep = 0;
-	swap_list.push_back(sand_move);
-}
-
-void ChunkHandler::acid_mat_rxn(Chunk* chunk, Material* acid, Material* other)
-{
-	other->health -= 10;
-	if(other->health <= 0)
-	{
-		destroy_material(other);
-	}
-}
-
-void ChunkHandler::smoke_falling_rxn(Chunk* chunk, Material* smoke, Material* other)
-{
-	Move smoke_move{smoke->position, other->position};
-	chunk->asleep = 0;
-	swap_list.push_back(smoke_move);
-}
-
-void ChunkHandler::react(Chunk* chunk, Material* m1, Material* m2)
-{
-	if(m1->material == MatType::SAND && (m2->material == MatType::WATER || m2->material == MatType::ACID))
-	{
-		water_sand_rxn(chunk, m2, m1);
-	}
-	if(m1->material == ACID)
-	{
-		acid_mat_rxn(chunk, m1, m2);
-	}
-	if(m1->material == SMOKE && m2->property & Properties::DOWN)
-	{
-		smoke_falling_rxn(chunk, m1, m2);
-	}
-	if(m1->material == FIRE && m2->material == WATER)
-	{
-		fire_water_rxn(chunk, m1, m2);
-	}
-	if(m1->material == WATER && m2->material == FIRE)
-	{
-		fire_water_rxn(chunk, m2, m1);
-	}
-
-}
-
-
-
 void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 {
 	assert(chunks.find(chunk->coords) != chunks.end());

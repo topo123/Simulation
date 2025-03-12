@@ -1,6 +1,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 #include <functional>
+#include <cstdint>
 
 #define NUM_COLORS 11.0f
 
@@ -69,7 +70,7 @@ struct vector_hash
 	}
 };
 
-enum MatType
+enum MatType: uint32_t
 {
 	NONE,
 	SAND,
@@ -96,6 +97,14 @@ struct MatTexCoords
 	const float OIL = {8.0f/NUM_COLORS};
 	const float DIRTY_DEBUG = {9.0f/NUM_COLORS};
 	const float GRID_DEBUG = {10.0f/NUM_COLORS};
+};
+
+struct serialized_material{
+	int x_pos;
+	int y_pos;
+	float x_vel;
+	float y_vel;
+	uint32_t material_type;
 };
 
 struct Material

@@ -12,6 +12,7 @@ double mouse_x, mouse_y;
 bool paused = false;
 bool debug_mode = false;
 bool mousePressed = false;
+bool save_world = false;
 bool erase = false;
 MatType material_type = MatType::SAND;
 
@@ -61,6 +62,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	else if(key == GLFW_KEY_G && action == GLFW_PRESS)
 	{
 		debug_mode = !debug_mode;
+	}
+	else if(key == GLFW_KEY_S && action == GLFW_PRESS)
+	{
+		save_world = true;
 	}
 }
 
@@ -150,7 +155,7 @@ int init_window(GLFWwindow** window)
 	return 0;
 }
 
-void game_loop()
+void game_loop(std::string name)
 {
 	GLFWwindow* window = nullptr;
 	int success = init_window(&window);
@@ -162,6 +167,10 @@ void game_loop()
 	std::cout << "Creating world\n";
 	World world;
 	world.init_world(80, 60, 800, 600, arena);
+	if(name != "")
+	{
+		world.load_world(name);
+	}
 	glfwSwapBuffers(window);
 
 	const unsigned int UPS = 120;
@@ -191,6 +200,11 @@ void game_loop()
 		{
 			world.delete_materials(mouse_x, mouse_y, 35, 35);
 		}
+		if(save_world)
+		{
+			world.save_world("test_world1.sim");
+			save_world = false;
+		}
 
 		elapsed_time = glfwGetTime() - nowTime;
 		nowTime = glfwGetTime();
@@ -217,8 +231,14 @@ void game_loop()
 
 }
 
-int main()
+int main(int argc,	char* argv[])
 {
-	game_loop();
+	if(argc > 1)
+	{
+		game_loop(std::string(argv[1]));
+	}
+	else{
+		game_loop("");
+	}
 	glfwTerminate();
 }
