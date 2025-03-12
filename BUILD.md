@@ -1,10 +1,10 @@
-#Building The Simulation
+# Building The Simulation
 
-##Prequisites
+## Prequisites
 To build on linux you need cmake and make installed.
 To build on windows you need cmake and ninja installed. 
 
-##Building on Windows:
+## Building on Windows:
 
 1. In the root directory of the project make a build directory 
 2. In the root directory of the project use the command: cmake -B build -G "Ninja
@@ -12,7 +12,7 @@ To build on windows you need cmake and ninja installed.
 3. These should create the build files 
 
 
-##Building On Linux:
+## Building On Linux:
 1. On linux you can either use ninja or unix makefiles
 2. Make the build directory in the root directory
 3. Use either the command cmake -B build for Unix Makefiles or use the windows command 
@@ -21,5 +21,5 @@ To build on windows you need cmake and ninja installed.
 3. This should create the build files
 
 
-##Running the Project
+## Running the Project
 To run the project navigate to the root directory and type into console "./build/main"
