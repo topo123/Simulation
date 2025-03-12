@@ -111,6 +111,7 @@ int init_window(GLFWwindow** window)
 	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -161,6 +162,7 @@ void game_loop()
 	std::cout << "Creating world\n";
 	World world;
 	world.init_world(80, 60, 800, 600, arena);
+	glfwSwapBuffers(window);
 
 	const unsigned int UPS = 120;
 	const unsigned int FPS = 60;
