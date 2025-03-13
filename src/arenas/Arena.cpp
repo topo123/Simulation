@@ -33,7 +33,6 @@ int free_arena(Arena* arena)
 #endif
 
 #ifdef WIN32
-	std::cout << "Freeing the shader memory" << std::endl;
 	int free_failure = VirtualFree(arena->arena_ptr, 0, MEM_RELEASE);
 	assert(free_failure == true);
 #endif

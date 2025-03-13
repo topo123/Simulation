@@ -14,7 +14,7 @@ void Renderer::compile_shaders()
 	std::cout << "Initializing the arena\n";
 	arena = init_arena();
 	std::cout << "Arena initialized\n";
-	shader = get_shader("src/shaders/frame_vert.vert", "src/shaders/frame_frag.frag", arena);
+	shader = get_shader("shaders/frame_vert.vert", "shaders/frame_frag.frag", arena);
 	
 
 
