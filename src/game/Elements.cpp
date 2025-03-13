@@ -704,6 +704,133 @@ void Elements::update_oil(ELEMENT_UPDATE_ARGS){
 
 }
 
+
+void Elements::update_flammable_gas(ELEMENT_UPDATE_ARGS)
+{
+	if(update_up(material) || update_side_up(material));
+
+	Material* displace_mat;
+	if(handler->in_world(material->position.x, material->position.y - 1))
+	{
+		displace_mat = handler->get_material(material->position.x, material->position.y - 1);
+	}
+
+	if(displace_mat != nullptr && displace_mat->material != SMOKE && displace_mat->property != STATIC)
+	{
+		handler->swap_list.push_back({material->position, displace_mat->position});
+		return;
+	}
+
+	if(material->state != BURNING)
+	{
+		return;
+	}
+
+	material->health -= 10;
+	if(material->health <= 0)
+	{
+		handler->remove_from_anim_list(material);
+		handler->destroy_material(material);
+		return;
+	}
+
+	auto it = handler->animation_list.find(material);
+	if(it == handler->animation_list.end() && material->tex_offset == handler->tex_coords.FL_GAS)
+	{
+		handler->animation_list[material] = {handler->tex_coords.FIRE, 1};
+	}
+
+
+
+
+	vector2 mat_pos{material->position.x, material->position.y};
+	Material* up = handler->in_world(mat_pos.x, mat_pos.y - 1)? handler->get_material(material->position.x, material->position.y - 1): nullptr;
+	Material* down = handler->in_world(mat_pos.x, mat_pos.y + 1)? handler->get_material(material->position.x, material->position.y + 1): nullptr;
+	Material* up_left = handler->in_world(mat_pos.x - 1, mat_pos.y - 1)? handler->get_material(material->position.x - 1, material->position.y - 1): nullptr;
+	Material* up_right = handler->in_world(mat_pos.x + 1, mat_pos.y - 1)? handler->get_material(material->position.x + 1, material->position.y - 1): nullptr;
+	Material* left = handler->in_world(mat_pos.x - 1, mat_pos.y)? handler->get_material(material->position.x - 1, material->position.y): nullptr;
+	Material* right = handler->in_world(mat_pos.x + 1, mat_pos.y)? handler->get_material(material->position.x + 1, material->position.y): nullptr;
+	Material* down_left = handler->in_world(mat_pos.x - 1, mat_pos.y + 1)? handler->get_material(material->position.x - 1, material->position.y + 1): nullptr;
+	Material* down_right = handler->in_world(mat_pos.x + 1, mat_pos.y + 1)? handler->get_material(material->position.x + 1, material->position.y + 1): nullptr;
+
+	ChunkHandler::Chunk* mat_chunk;
+	if(up != nullptr && up->reaction & FLAMMABLE)
+	{
+		up->state = BURNING;
+		mat_chunk = handler->get_chunk(up->position.x, up->position.y);
+		if(mat_chunk != nullptr && mat_chunk->asleep == 1)
+		{
+			mat_chunk->asleep = 0;
+		}
+	}
+	if(down != nullptr && down->reaction & FLAMMABLE)
+	{
+		down->state = BURNING;
+		mat_chunk = handler->get_chunk(down->position.x, down->position.y);
+		if(mat_chunk != nullptr && mat_chunk->asleep == 1)
+		{
+			mat_chunk->asleep = 0;
+		}
+	}
+	if(up_left != nullptr && up_left->reaction & FLAMMABLE)
+	{
+		up_left->state = BURNING;
+		mat_chunk = handler->get_chunk(up_left->position.x, up_left->position.y);
+		if(mat_chunk != nullptr && mat_chunk->asleep == 1)
+		{
+			mat_chunk->asleep = 0;
+		}
+	}
+	if(up_right != nullptr && up_right->reaction & FLAMMABLE)
+	{
+		up_right->state = BURNING;
+		mat_chunk = handler->get_chunk(up_right->position.x, up_right->position.y);
+		if(mat_chunk != nullptr && mat_chunk->asleep == 1)
+		{
+			mat_chunk->asleep = 0;
+		}
+	}
+	if(down_right != nullptr && down_right->reaction & FLAMMABLE)
+	{
+		down_right->state = BURNING;
+		mat_chunk = handler->get_chunk(down_right->position.x, down_right->position.y);
+		if(mat_chunk != nullptr && mat_chunk->asleep == 1)
+		{
+			mat_chunk->asleep = 0;
+		}
+	}
+	if(down_left != nullptr && down_left->reaction & FLAMMABLE)
+	{
+		down_left->state = BURNING;
+		mat_chunk = handler->get_chunk(down_left->position.x, down_left->position.y);
+		if(mat_chunk != nullptr && mat_chunk->asleep == 1)
+		{
+			mat_chunk->asleep = 0;
+		}
+	}
+	if(left != nullptr && left->reaction & FLAMMABLE)
+	{
+		left->state = BURNING;
+		mat_chunk = handler->get_chunk(left->position.x, left->position.y);
+		if(mat_chunk != nullptr && mat_chunk->asleep == 1)
+		{
+			mat_chunk->asleep = 0;
+		}
+	}
+	if(right != nullptr && right->reaction & FLAMMABLE)
+	{
+		right->state = BURNING;
+		mat_chunk = handler->get_chunk(right->position.x, right->position.y);
+		if(mat_chunk != nullptr && mat_chunk->asleep == 1)
+		{
+			mat_chunk->asleep = 0;
+		}
+	}
+
+
+
+}
+
 void Elements::init(ChunkHandler* handler){
 	this->handler = handler;
 }

@@ -89,6 +89,14 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 		material->reaction = static_cast<ReactionProperties>(FLAMMABLE + ACID_DESTROY + DISPLACIBLE);
 		material->react_direct = static_cast<ReactionDirection>(AROUND);
 	}
+	else if(type == FLAMMABLE_GAS)
+	{
+		material->tex_offset = tex_coords.FL_GAS;
+		material->health = 200;
+		material->property = static_cast<Properties>(UP + UP_SIDE);
+		material->reaction = static_cast<ReactionProperties>(FLAMMABLE);
+		material->react_direct = static_cast<ReactionDirection>(AROUND);
+	}
 }
 
 void ChunkHandler::destroy_material(Material* material)
@@ -150,6 +158,9 @@ bool ChunkHandler::can_react(Material* m1, Material* m2)
 			break;
 		case MatType::FIRE:
 			return m2->reaction & FLAMMABLE;
+			break;
+		case MatType::FLAMMABLE_GAS:
+			return m2->property & Properties::DOWN;
 			break;
 	}
 	return false;
@@ -673,6 +684,10 @@ void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 		else if(mat->material == OIL)
 		{
 			element_updater.update_oil(mat, dT);
+		}
+		else if(mat->material == FLAMMABLE_GAS)
+		{
+			element_updater.update_flammable_gas(mat, dT);
 		}
 
 

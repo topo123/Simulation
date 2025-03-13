@@ -3,7 +3,7 @@
 #include <functional>
 #include <cstdint>
 
-#define NUM_COLORS 11.0f
+#define NUM_COLORS 12.0f
 
 enum Properties{
 	STATIC = 0b00000000,
@@ -81,7 +81,8 @@ enum MatType: uint32_t
 	STONE,
 	ACID,
 	NITRO,
-	OIL
+	OIL,
+	FLAMMABLE_GAS
 };
 
 struct MatTexCoords
@@ -95,8 +96,9 @@ struct MatTexCoords
 	const float FIRE = {6.0f/NUM_COLORS};
 	const float FIRE_CHANGE_COLOR = {7.0f/NUM_COLORS};
 	const float OIL = {8.0f/NUM_COLORS};
-	const float DIRTY_DEBUG = {9.0f/NUM_COLORS};
-	const float GRID_DEBUG = {10.0f/NUM_COLORS};
+	const float FL_GAS = {9.0f/NUM_COLORS};
+	const float DIRTY_DEBUG = {10.0f/NUM_COLORS};
+	const float GRID_DEBUG = {11.0f/NUM_COLORS};
 };
 
 struct serialized_material{

@@ -28,6 +28,7 @@ public:
 	void update_smoke(ELEMENT_UPDATE_ARGS);
 	void update_stone(ELEMENT_UPDATE_ARGS);
 	void update_oil(ELEMENT_UPDATE_ARGS);
+	void update_flammable_gas(ELEMENT_UPDATE_ARGS);
 
 	void init(ChunkHandler* handler);
 };

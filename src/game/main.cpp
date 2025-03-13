@@ -59,6 +59,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	{
 		material_type = MatType::OIL;
 	}
+	else if(key == GLFW_KEY_9 && action == GLFW_PRESS)
+	{
+		material_type = MatType::FLAMMABLE_GAS;
+	}
 	else if(key == GLFW_KEY_G && action == GLFW_PRESS)
 	{
 		debug_mode = !debug_mode;
@@ -219,7 +223,7 @@ void game_loop(std::string name)
 		}
 		frames_skip = 0;
 
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(87.0f/255.0f, 88.0f/255.0f, 87.0f/255.0f, 0.1f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		world.draw_world(debug_mode);
 		frame_accumulator -= FPS_SLICE;
@@ -231,7 +235,7 @@ void game_loop(std::string name)
 
 }
 
-int main(int argc,	char* argv[])
+int main(int argc, char* argv[])
 {
 	if(argc > 1)
 	{
