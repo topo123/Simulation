@@ -2,7 +2,6 @@
 compile_commands.json
 build/
 logs/
-CMakeLists.txt
 compile.sh
 flame.sh
 perf.data
