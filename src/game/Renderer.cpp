@@ -170,6 +170,13 @@ void Renderer::initRenderData()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 12, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
 
+	unsigned char pixels[12 * 4];
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	for(size_t i = 0; i < 48; i ++)
+	{
+		 std::cout << (int)pixels[i] << ", ";
+	}
+	std::cout << "\n";
 
 	glGenTextures(1, &write_texture);
 	glBindTexture(GL_TEXTURE_2D, write_texture);
@@ -201,6 +208,7 @@ void Renderer::initRenderData()
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		std::cerr << "Error: Framebuffer is not complete!" << std::endl;
 	}
+
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glGenVertexArrays(1, &screen_quad);
