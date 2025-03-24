@@ -22,7 +22,9 @@ if(WIN32)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address  -fno-omit-frame-pointer -g")
+if(UNIX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address  -fno-omit-frame-pointer -g")
+endif()
 
 include_directories(./glad/include)
 message(STATUS "${CMAKE_INCLUDE_DIRECTORIES}")
@@ -47,7 +49,6 @@ target_include_directories(utilities PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/includ
 
 add_executable(main ./src/game/main.cpp)
 
-target_compile_options(glfw PRIVATE -fno-sanitize=address)
 target_include_directories(main PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(main PRIVATE world render arena utilities glad glfw)
 
