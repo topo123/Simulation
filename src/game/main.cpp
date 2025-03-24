@@ -234,7 +234,6 @@ void game_loop(std::string name)
 
 int main(int argc, char* argv[])
 {
-	setenv("ASAN_OPTIONS", "verbosity=1", 1);
 	if(argc > 1)
 	{
 		game_loop(std::string(argv[1]));
