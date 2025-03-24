@@ -11,3 +11,5 @@ out.folded
 out.perf
 perf.svg
 cachegrind.*
+asan_ignore.txt
+
