@@ -114,6 +114,7 @@ void glfwErrorCallback(int error, const char* description) {
 int init_window(GLFWwindow** window)
 {
 	glfwSetErrorCallback(glfwErrorCallback);
+
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -182,7 +183,7 @@ void game_loop(std::string name)
 	const float FPS_SLICE = 1.0f/FPS;
 	const float UPS_SLICE = 1.0f/UPS;
 	const unsigned int max_updates = 30;
-	const unsigned int MAX_FRAME_SKIPS = 10;
+	const unsigned int MAX_FRAME_SKIPS = 2;
 	unsigned int frames_skip = 0;
 
 	double elapsed_time;
@@ -223,20 +224,17 @@ void game_loop(std::string name)
 		}
 		frames_skip = 0;
 
-		glClearColor(87.0f/255.0f, 88.0f/255.0f, 87.0f/255.0f, 0.1f);
-		glClear(GL_COLOR_BUFFER_BIT);
 		world.draw_world(debug_mode);
 		frame_accumulator -= FPS_SLICE;
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	glfwDestroyWindow(window);
-
 }
 
 int main(int argc, char* argv[])
 {
+	setenv("ASAN_OPTIONS", "verbosity=1", 1);
 	if(argc > 1)
 	{
 		game_loop(std::string(argv[1]));
@@ -245,4 +243,5 @@ int main(int argc, char* argv[])
 		game_loop("");
 	}
 	glfwTerminate();
+	return 0;
 }

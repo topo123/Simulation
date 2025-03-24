@@ -12,10 +12,11 @@
 void Renderer::compile_shaders()
 {
 	std::cout << "Initializing the arena\n";
-	arena = init_arena();
+	arena = init_arena(1024 * 1024 * 1024);
 	std::cout << "Arena initialized\n";
-	shader = get_shader("shaders/frame_vert.vert", "shaders/frame_frag.frag", arena);
-	
+
+	Shader* shader = get_shader("shaders/frame_vert.vert", "shaders/frame_frag.frag", arena);
+	Shader* fbo_shader = get_shader("shaders/fbo_vert.vert", "shaders/fbo_frag.frag", arena);
 
 
 	unsigned int vShader = glCreateShader(GL_VERTEX_SHADER);
@@ -28,7 +29,8 @@ void Renderer::compile_shaders()
 	if (!success)
 	{
 		glGetShaderInfoLog(vShader, 1024, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED texture shader\n" << infoLog << std::endl;
+		throw std::bad_exception();
 	}
 
 	unsigned int fShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -39,13 +41,14 @@ void Renderer::compile_shaders()
 	if (!success)
 	{
 		glGetShaderInfoLog(fShader, 1024, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED texture shader\n" << infoLog << std::endl;
+		throw std::bad_exception();
 	}
 
-	shader_program = glCreateProgram();
-	glAttachShader(shader_program, vShader);
-	glAttachShader(shader_program, fShader);
-	glLinkProgram(shader_program);
+	writer_shader_program = glCreateProgram();
+	glAttachShader(writer_shader_program, vShader);
+	glAttachShader(writer_shader_program, fShader);
+	glLinkProgram(writer_shader_program);
 
 
 	std::cout << "Deleting the shaders\n";
@@ -53,18 +56,56 @@ void Renderer::compile_shaders()
 	glDeleteShader(fShader);
 	std::cout << "Shaders deleted\n";
 
-	glUseProgram(shader_program);
+	glUseProgram(writer_shader_program);
 	glm::mat4 proj = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f, -1.0f, 1.0f);
-	int matrix = glGetUniformLocation(shader_program, "projection");
+	int matrix = glGetUniformLocation(writer_shader_program, "projection");
 	assert(matrix != -1);
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(proj));
+
+	unsigned int fbo_vShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(fbo_vShader, 1, &(fbo_shader->vertex_shader), NULL);
+	glCompileShader(fbo_vShader);
+
+	int fbo_success;
+	char fbo_infoLog[1024];
+	glGetShaderiv(vShader, GL_COMPILE_STATUS, &fbo_success);
+	if (!fbo_success)
+	{
+		glGetShaderInfoLog(vShader, 1024, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED screen shader\n" << infoLog << std::endl;
+		throw std::bad_exception();
+	}
+
+	unsigned int fbo_fShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fbo_fShader, 1, &(fbo_shader->frag_shader), NULL);
+	glCompileShader(fbo_fShader);
+
+	glGetShaderiv(fbo_fShader, GL_COMPILE_STATUS, &fbo_success);
+	if (!fbo_success)
+	{
+		glGetShaderInfoLog(fbo_fShader, 1024, NULL, infoLog);
+		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED screen shader\n" << infoLog << std::endl;
+		throw std::bad_exception();
+	}
+
+	screen_shader_program = glCreateProgram();
+	glAttachShader(screen_shader_program, fbo_vShader);
+	glAttachShader(screen_shader_program, fbo_fShader);
+	glLinkProgram(screen_shader_program);
+
+
+	std::cout << "Deleting the shaders\n";
+	glDeleteShader(fbo_vShader);
+	glDeleteShader(fbo_fShader);
+	glDeleteShader(vShader);
+	glDeleteShader(fShader);
+	std::cout << "Shaders deleted\n";
+
 
 
 	std::cout << "Freeing the arean\n";
 	free_arena(arena);
 	std::cout << "Freed the arean\n";
-	shader->vertex_shader = nullptr;
-	shader->frag_shader = nullptr;
 }
 
 void Renderer::initRenderData()
@@ -84,20 +125,6 @@ void Renderer::initRenderData()
 		255, 0, 0, 255 //grid debug color
 	};
 
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 12, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
-
-
-	compile_shaders();
-	unsigned int VBO;
-	unsigned int EBO;
-
 	float vertices[] = {
 		0.0f, 0.0f, 0.0f, 0.0f,
 		1.0f, 0.0f, 1.0f, 0.0f,
@@ -107,16 +134,51 @@ void Renderer::initRenderData()
 
 	unsigned int indices[] = {
 		0, 1, 2,
-		1, 3, 2
+		0, 3, 2
+	};
+
+	float write_vertices[] = {
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		1.0f, -1.0f,  1.0f, 0.0f,
+		1.0f,  1.0f,  1.0f, 1.0f
 	};
 
 
-	glGenVertexArrays(1, &quad);
+	compile_shaders();
+	unsigned int VBO;
+	unsigned int EBO;
+	unsigned int write_vbo;
+
+
+	glGenFramebuffers(1, &FBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+
+
+	glGenTextures(1, &material_texture);
+	glBindTexture(GL_TEXTURE_2D, material_texture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 12, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
+
+
+	glGenTextures(1, &write_texture);
+	glBindTexture(GL_TEXTURE_2D, write_texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 800, 600, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, write_texture, 0);
+
+	glGenVertexArrays(1, &write_texture_quad);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
-
-
-	glBindVertexArray(quad);
+	glBindVertexArray(write_texture_quad);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -127,67 +189,108 @@ void Renderer::initRenderData()
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0); 
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		std::cerr << "Error: Framebuffer is not complete!" << std::endl;
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glGenVertexArrays(1, &screen_quad);
+	glGenBuffers(1, &write_vbo);
+	glBindVertexArray(screen_quad);
+
+	glBindBuffer(GL_ARRAY_BUFFER, write_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(write_vertices), write_vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,  4 * sizeof(float), (void*)0); 
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
-void Renderer::render(float tex_offset, vector2* pos, vector2* size)
+void Renderer::texture_render(float tex_offset, vector2* pos, vector2* size)
 {
-	glUseProgram(shader_program);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	glUseProgram(writer_shader_program);
 	glm::mat4 model = glm::mat4(1.0f);
 
 	model = glm::translate(model, glm::vec3(pos->x, pos->y, 0.0f));
 	model = glm::scale(model, glm::vec3(size->x, size->y, 1.0f));
 
-	int matrix = glGetUniformLocation(shader_program, "model");
+	int matrix = glGetUniformLocation(writer_shader_program, "model");
 	assert(matrix != -1);
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(model));
 
 
-	int off = glGetUniformLocation(shader_program,"offset"); 
+	int off = glGetUniformLocation(writer_shader_program,"offset"); 
 	assert(off != -1);
 	glUniform1f(off, tex_offset);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glBindVertexArray(quad);
+	glBindTexture(GL_TEXTURE_2D, material_texture);
+	glBindVertexArray(write_texture_quad);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 
 
 
-void Renderer::draw_rect(vector2& upper, vector2& lower, float offset)
+void Renderer::draw_texture_rect(vector2& upper, vector2& lower, float offset)
 {
-	glUseProgram(shader_program);
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	glUseProgram(writer_shader_program);
 	glm::mat4 model = glm::mat4(1.0f);
 
 	model = glm::translate(model, glm::vec3(upper.x, upper.y, 0.0f));
 	model = glm::scale(model, glm::vec3((lower.x - upper.x), (lower.y - upper.y), 1.0f));
 
-	int matrix = glGetUniformLocation(shader_program, "model");
+	int matrix = glGetUniformLocation(writer_shader_program, "model");
 	assert(matrix != -1);
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(model));
 
 
-	int off = glGetUniformLocation(shader_program,"offset"); 
+	int off = glGetUniformLocation(writer_shader_program,"offset"); 
 	assert(off != -1);
 	glUniform1f(off, offset);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glBindVertexArray(quad);
+	glBindTexture(GL_TEXTURE_2D, material_texture);
+	glBindVertexArray(write_texture_quad);
 	glDrawArrays(GL_LINE_LOOP, 0, 4);
 	glBindVertexArray(0);
 }
 
+
+void Renderer::screen_render()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(87.0f/255.0f, 88.0f/255.0f, 87.0f/255.0f, 0.1f);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glUseProgram(screen_shader_program);
+	glBindTexture(GL_TEXTURE_2D, write_texture);
+
+	glBindVertexArray(screen_quad);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindVertexArray(0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	glClearColor(87.0f/255.0f, 88.0f/255.0f, 87.0f/255.0f, 0.1f);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
+
 Renderer::~Renderer()
 {
-	glDeleteTextures(1 ,&texture);
-	glDeleteVertexArrays(1, &quad);
-	glDeleteShader(shader_program);
-	delete shader;
+	glDeleteTextures(1 ,&material_texture);
+	glDeleteVertexArrays(1, &write_texture_quad);
+	glDeleteShader(screen_shader_program);
 }

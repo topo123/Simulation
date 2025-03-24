@@ -8,21 +8,27 @@
 class Renderer
 {
 	unsigned int scr_width = 800, scr_height = 600;
+
 	unsigned int FBO;
-	unsigned int RBO;
-	unsigned int color_buffer;
-	unsigned int quad;
-	unsigned int shader_program;
-	unsigned int texture;
-	Shader* shader;
+
+	unsigned int write_texture_quad;
+	unsigned int screen_quad;
+
+	unsigned int writer_shader_program;
+	unsigned int screen_shader_program;
+
+	unsigned int material_texture;
+	unsigned int write_texture;
+
 	Arena* arena;
 
 	void compile_shaders();
 
 public:
-	void draw_rect(vector2& upper, vector2& lower, float offset);
+	void draw_texture_rect(vector2& upper, vector2& lower, float offset);
 	void initRenderData();
-	void render(float tex_offset, vector2* pos, vector2* size);
+	void texture_render(float tex_offset, vector2* pos, vector2* size);
+	void screen_render();
 	~Renderer();
 };
 

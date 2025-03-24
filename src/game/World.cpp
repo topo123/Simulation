@@ -248,8 +248,9 @@ void World::draw_world(bool debug_mode)
 
 	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
 	{
-		handler.draw_chunk(chunk, &render, debug_mode);
+		handler.draw_chunk_to_texture(chunk, &render, debug_mode);
 	}
+	render.screen_render();
 }
 
 void World::load_world(std::string name)

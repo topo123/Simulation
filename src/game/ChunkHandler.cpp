@@ -845,7 +845,7 @@ void ChunkHandler::commit_changes()
 	swap_list.clear();
 }
 
-void ChunkHandler::draw_chunk(Chunk* chunk, Renderer* render, bool debug_mode)
+void ChunkHandler::draw_chunk_to_texture(Chunk* chunk, Renderer* render, bool debug_mode)
 {
 	const std::vector<Material*>& particles = chunk->materials;
 	if(debug_mode)
@@ -854,8 +854,8 @@ void ChunkHandler::draw_chunk(Chunk* chunk, Renderer* render, bool debug_mode)
 		end_coords.x = (chunk->coords.x * chunk_width) + chunk_width;
 		end_coords.y = (chunk->coords.y * chunk_height) + chunk_height;
 		vector2 start_coords {chunk->coords.x * chunk_width, chunk->coords.y * chunk_height};
-		render->draw_rect(start_coords, end_coords, tex_coords.GRID_DEBUG);
-		render->draw_rect(chunk->d_upper, chunk->d_lower, tex_coords.DIRTY_DEBUG);
+		render->draw_texture_rect(start_coords, end_coords, tex_coords.GRID_DEBUG);
+		render->draw_texture_rect(chunk->d_upper, chunk->d_lower, tex_coords.DIRTY_DEBUG);
 	}
 	static vector2 mat_size {1, 1};
 	for(size_t i = 0; i < chunk_size; i ++)
@@ -863,7 +863,7 @@ void ChunkHandler::draw_chunk(Chunk* chunk, Renderer* render, bool debug_mode)
 		Material* mat = particles[i];
 		if(particles[i] != nullptr)
 		{
-			render->render(mat->tex_offset, &mat->position, &mat_size);
+			render->texture_render(mat->tex_offset, &mat->position, &mat_size);
 		}
 	}
 }
