@@ -161,6 +161,9 @@ void Renderer::initRenderData()
 	glGenTextures(1, &material_texture);
 	glBindTexture(GL_TEXTURE_2D, material_texture);
 
+	GLint swizzle_mask[] = {GL_RED, GL_GREEN, GL_BLUE, GL_ONE};
+	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzle_mask);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
