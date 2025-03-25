@@ -5,10 +5,9 @@ out vec4 FragColor;
 in vec2 tex_coords;
 
 uniform float offset;
-uniform sampler2D tex;
+uniform sampler1D tex;
 
 void main()
 {
-	vec2 adjust = vec2(offset, tex_coords.y);
-	FragColor = texture(tex, adjust);
+	FragColor = texture(tex, offset);
 }
