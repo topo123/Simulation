@@ -64,8 +64,11 @@ public:
 	const float g_force = 2;
 	const int fast_liquid_spread = 5;
 
-	std::vector<vector2> get_rxn_coord(Material* material);
 	std::string print_pos(int x, int y);
+	std::string print_pos(vector2& pos);
+	std::string print_pos(fvector2& pos);
+
+	std::vector<vector2> get_rxn_coord(Material* material);
 	inline size_t index(int x, int y)
 	{
 		return ((y % chunk_height) * chunk_width) + (x % chunk_width);
