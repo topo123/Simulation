@@ -19,12 +19,11 @@ public:
 	const float g_force = 10.0f;
 	const int fast_liquid_spread = 5;
 
-	vector2 velocity_update(vector2* pos, fvector2* velocity);
+	vector2 pos_update(vector2* pos, fvector2* velocity);
 
-	bool solid_physics_update(ELEMENT_UPDATE_ARGS);
-	bool update_side(Material* material);
-	bool update_up(Material* material);
-	bool update_side_up(Material* material);
+	vector2 solid_physics_update(ELEMENT_UPDATE_ARGS);
+	vector2 liquid_physics_update(ELEMENT_UPDATE_ARGS);
+	vector2 gas_physics_update(ELEMENT_UPDATE_ARGS);
 
 	void update_sand(ELEMENT_UPDATE_ARGS);
 	void update_water(ELEMENT_UPDATE_ARGS);

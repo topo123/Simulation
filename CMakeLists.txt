@@ -47,6 +47,8 @@ target_include_directories(render PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(world PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(utilities PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
+
 add_executable(main ./src/game/main.cpp)
 
 target_include_directories(main PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
