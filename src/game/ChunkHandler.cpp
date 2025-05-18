@@ -1,4 +1,5 @@
 #include "Material.hpp"
+#include <iostream>
 #include <algorithm>
 #include <climits>
 #include <cstdint>
@@ -37,7 +38,7 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 	{
 		material->health = 200;
 		material->tex_offset = tex_coords.SAND;
-		material->property = static_cast<Properties>(DOWN + DOWN_SIDE);
+		material->property = static_cast<Properties>(PHYSICS);
 		material->reaction = static_cast<ReactionProperties>(ACID_DESTROY);
 		material->react_direct = static_cast<ReactionDirection>(RDOWN);
 	}
@@ -123,6 +124,16 @@ void ChunkHandler::destroy_material(Material* material)
 std::string ChunkHandler::print_pos(int x, int y)
 {
 	return "(" + std::to_string(x) + ", " + std::to_string(y) + ")"; 
+}
+
+std::string ChunkHandler::print_pos(vector2& pos)
+{
+	return "(" + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ")"; 
+}
+
+std::string ChunkHandler::print_pos(fvector2& pos)
+{
+	return "(" + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ")"; 
 }
 
 ChunkHandler::Chunk* ChunkHandler::init_chunk(int mat_x, int mat_y)
@@ -499,7 +510,8 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			is_dirty = 1;
 			continue;
 		}
-		if(mat->property & Properties::SHORT_LIVED){
+		if(mat->property & Properties::SHORT_LIVED)
+		{
 			min_x = std::min(mat_x, min_x);
 			min_y = std::min(mat_y, min_y);
 			max_y = std::max(mat_y, max_y);
@@ -507,20 +519,20 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			is_dirty = 1;
 			continue;
 		}
-		if(mat->property & Properties::DOWN)
+		if(mat->property & Properties::PHYSICS)
 		{
-			int curr_offset = 1;
-
-			while(in_world(mat_x, mat_y + curr_offset) && get_material(mat_x, mat_y + curr_offset) == nullptr && curr_offset <= check_down_cells){
-				curr_offset ++;
-			}
-
-			if(curr_offset > 1)
+			vector2 update_pos = element_updater.velocity_update(&mat->position, &mat->velocity);
+			if(update_pos.x != -1)
 			{
+				//std::cout << "Update pos for dirty rect is " << print_pos(update_pos) << std::endl;
 				min_x = std::min(mat_x, min_x);
-				min_y = std::min(mat_y, min_y);
-				max_y = std::max(mat_y + curr_offset - 1, max_y);
 				max_x = std::max(mat_x, max_x);
+				min_x = std::min(update_pos.x, min_x);
+				max_x = std::max(update_pos.x, max_x);
+				min_y = std::min(mat_y, min_y);
+				max_y = std::max(mat_y, max_y);
+				min_y = std::min(update_pos.y, min_y);
+				max_y = std::max(update_pos.y, max_y);
 				is_dirty = 1;
 			}
 		}
@@ -529,24 +541,6 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			min_x = std::min(mat_x, min_x);
 			min_y = std::min(mat_y - 1, min_y);
 			max_y = std::max(mat_y, max_y);
-			max_x = std::max(mat_x, max_x);
-			assert(min_x <= max_x && min_y <= max_y);
-			is_dirty = 1;
-		}
-		if(mat->property & Properties::DOWN_SIDE && in_world(mat_x + 1, mat_y) && get_material(mat_x + 1, mat_y) == nullptr && in_world(mat_x + 1, mat_y + 1) && get_material(mat_x + 1, mat_y + 1) == nullptr)
-		{
-			min_x = std::min(mat_x, min_x);
-			min_y = std::min(mat_y, min_y);
-			max_y = std::max(mat_y + 1, max_y);
-			max_x = std::max(mat_x + 1, max_x);
-			assert(min_x <= max_x && min_y <= max_y);
-			is_dirty = 1;
-		}
-		if(mat->property & Properties::DOWN_SIDE && in_world(mat_x - 1, mat_y) && get_material(mat_x - 1, mat_y) == nullptr && in_world(mat_x - 1, mat_y + 1) && get_material(mat_x - 1, mat_y + 1) == nullptr)
-		{
-			min_x = std::min(mat_x - 1, min_x);
-			min_y = std::min(mat_y, min_y);
-			max_y = std::max(mat_y + 1, max_y);
 			max_x = std::max(mat_x, max_x);
 			assert(min_x <= max_x && min_y <= max_y);
 			is_dirty = 1;
@@ -704,7 +698,7 @@ void ChunkHandler::init_chunk_handler(int cW, int cH, int wW, int wH, PoolArena*
 		assert(false);
 		return;
 	}
-	element_updater.init(this);
+	element_updater.init(this, wW, wH);
 	material_arena = arena;
 
 	chunk_width = cW;

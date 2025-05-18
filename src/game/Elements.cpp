@@ -1,262 +1,12 @@
 #include "Elements.hpp"
 #include "ChunkHandler.hpp"
 #include <cstdint>
-
-
-
-
-bool Elements::update_down(ELEMENT_UPDATE_ARGS)
-{
-	if(!handler->in_world(material->position.x, material->position.y + 1) || handler->get_material(material->position.x, material->position.y + 1) != nullptr)
-	{
-		return false;
-	}
-
-
-	material->velocity.y = material->velocity.y + (g_force * dT);
-	vector2 new_pos{material->position.x, material->position.y};
-	int curr_offset = 1;
-	const int num_cells_move = (int)(material->velocity.y + 0.5);
-
-	while(curr_offset <= num_cells_move && handler->in_world(new_pos.x, new_pos.y + curr_offset) && handler->get_material(new_pos.x, new_pos.y + curr_offset) == nullptr){
-		curr_offset ++;
-	}
-
-	if(curr_offset == 1)
-	{
-		material->velocity.y = 0;
-		return false;
-	}
-
-	new_pos.y += curr_offset - 1;
-	if(new_pos.y >= handler->world_height){
-		new_pos.y = 599;
-	}
-
-	ChunkHandler::Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-	handler->move_list.push_back(new_move);
-	return true;
-}
-
-bool Elements::update_up(Material* material)
-{
-	if(!handler->in_world(material->position.x, material->position.y - 1))
-	{
-		return false;
-	}
-	Material* check_material = handler->get_material(material->position.x, material->position.y - 1);
-
-
-	if(check_material == nullptr)
-	{
-		vector2 new_pos {material->position.x, material->position.y - 1};
-		ChunkHandler::Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		handler->move_list.push_back(new_move);
-		return true;
-	}
-	return false;
-}
-
-bool Elements::update_side_up(Material* material)
-{
-
-	uint8_t direction = rand() % 2;
-	uint8_t can_move = false;
-
-	if(direction == 0)
-	{
-		uint8_t left_clear = handler->in_world(material->position.x - 1, material->position.y) && handler->get_material(material->position.x - 1, material->position.y) == nullptr;
-		uint8_t diag_left_clear = handler->in_world(material->position.x - 1, material->position.y - 1) && handler->get_material(material->position.x - 1, material->position.y - 1) == nullptr;
-		can_move = left_clear && diag_left_clear;
-	}
-	else
-{
-		uint8_t right_clear = handler->in_world(material->position.x + 1, material->position.y) && handler->get_material(material->position.x + 1, material->position.y) == nullptr;
-		uint8_t diag_right_clear = handler->in_world(material->position.x + 1, material->position.y - 1) && handler->get_material(material->position.x + 1, material->position.y - 1) == nullptr;
-		can_move = right_clear && diag_right_clear;
-	}
-
-	if(!can_move && direction == 0)
-	{
-		uint8_t right_clear = handler->in_world(material->position.x + 1, material->position.y) && handler->get_material(material->position.x + 1, material->position.y) == nullptr;
-		uint8_t diag_right_clear = handler->in_world(material->position.x + 1, material->position.y - 1) && handler->get_material(material->position.x + 1, material->position.y - 1) == nullptr;
-		can_move = right_clear && diag_right_clear;
-		direction = 1;
-	}
-	else if(!can_move && direction == 1)
-	{
-		uint8_t left_clear = handler->in_world(material->position.x - 1, material->position.y) && handler->get_material(material->position.x - 1, material->position.y) == nullptr;
-		uint8_t diag_left_clear = handler->in_world(material->position.x - 1, material->position.y - 1) && handler->get_material(material->position.x - 1, material->position.y - 1) == nullptr;
-		can_move = left_clear && diag_left_clear;
-		direction = 0;
-	}
-
-	if(!can_move)
-	{
-		return false;
-	}
-
-	if(direction == 0)
-	{
-		vector2 new_pos {material->position.x - 1, material->position.y - 1};
-		ChunkHandler::Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		handler->move_list.push_back(new_move);
-		return true;
-	}
-	else if(direction == 1)
-	{
-		vector2 new_pos {material->position.x + 1, material->position.y - 1};
-		ChunkHandler::Move new_move {{material->position.x, material->position.y}, {new_pos.x, new_pos.y}};
-		handler->move_list.push_back(new_move);
-		return true;
-	}
-	return false;
-}
-
-bool Elements::update_side(Material* material)
-{
-	uint8_t left = material->velocity.x < 0;
-	uint8_t right = material->velocity.x > 0; 
-	if(!left && !right)
-	{
-		uint8_t direction = rand() % 2;
-		left = direction == 0;
-		right = direction == 1;
-		material->velocity.x = left ? -fast_liquid_spread: fast_liquid_spread;
-	}
-
-
-
-	vector2 new_pos{material->position.x, material->position.y};
-	const int num_cells_move = fast_liquid_spread;
-	int curr_offset = 1;
-
-	if(left) 
-	{
-		while(handler->in_world(new_pos.x - curr_offset, new_pos.y) && handler->get_material(new_pos.x - curr_offset, new_pos.y) == nullptr && curr_offset <= num_cells_move){
-			curr_offset ++;
-		}
-	}
-	if(right)
-	{
-		while(handler->in_world(new_pos.x + curr_offset, new_pos.y) && handler->get_material(new_pos.x + curr_offset, new_pos.y) == nullptr && curr_offset <= num_cells_move){
-			curr_offset ++;
-		}
-	}
-
-	if(curr_offset == 1){
-		left = !left;
-		right = !right;
-		material->velocity.x = -material->velocity.x;
-	}
-	else if(left)
-	{
-		ChunkHandler::Move move {{material->position.x, material->position.y}, {new_pos.x - curr_offset + 1, new_pos.y}};
-		handler->move_list.push_back(move);
-		return true;
-	}
-	else if(right)
-	{
-		ChunkHandler::Move move {{material->position.x, material->position.y}, {new_pos.x + curr_offset - 1, new_pos.y}};
-		handler->move_list.push_back(move);
-		return true;
-	}
-
-	curr_offset = 1;
-	if(left) 
-	{
-		while(handler->in_world(new_pos.x - curr_offset, new_pos.y) && handler->get_material(new_pos.x - curr_offset, new_pos.y) == nullptr && curr_offset <= num_cells_move){
-			curr_offset ++;
-		}
-	}
-	if(right)
-	{
-		while(handler->in_world(new_pos.x + curr_offset, new_pos.y) && handler->get_material(new_pos.x + curr_offset, new_pos.y) == nullptr && curr_offset <= num_cells_move){
-			curr_offset ++;
-		}
-	}
-
-	if(curr_offset == 1){
-		material->velocity.x = 0;
-		return false;
-	}
-	else if(left)
-	{
-		ChunkHandler::Move move {{material->position.x, material->position.y}, {new_pos.x - curr_offset + 1, new_pos.y}};
-		handler->move_list.push_back(move);
-		return true;
-	}
-	else if(right)
-	{
-		ChunkHandler::Move move {{material->position.x, material->position.y}, {new_pos.x + curr_offset - 1, new_pos.y}};
-		handler->move_list.push_back(move);
-		return true;
-	}
-	assert(false);
-	return false;
-}
-
-
-bool Elements::update_side_down(Material* material)
-{
-	uint8_t direction = rand() % 2;
-	uint8_t can_move = false;
-
-	if(direction == 0)
-	{
-		uint8_t left_clear = handler->in_world(material->position.x -1, material->position.y) && handler->get_material(material->position.x - 1, material->position.y) == nullptr;
-		uint8_t diag_left_clear = handler->in_world(material->position.x - 1, material->position.y + 1) && handler->get_material(material->position.x - 1, material->position.y + 1) == nullptr;
-		can_move = left_clear && diag_left_clear;
-	}
-	else
-{
-		uint8_t right_clear = handler->in_world(material->position.x + 1, material->position.y) && handler->get_material(material->position.x + 1, material->position.y) == nullptr;
-		uint8_t diag_right_clear = handler->in_world(material->position.x + 1, material->position.y + 1) && handler->get_material(material->position.x + 1, material->position.y + 1) == nullptr;
-		can_move = right_clear && diag_right_clear;
-	}
-
-	if(!can_move && direction == 0)
-	{
-		uint8_t right_clear = handler->in_world(material->position.x + 1, material->position.y) && handler->get_material(material->position.x + 1, material->position.y) == nullptr;
-		uint8_t diag_right_clear = handler->in_world(material->position.x + 1, material->position.y + 1) && handler->get_material(material->position.x + 1, material->position.y + 1) == nullptr;
-		can_move = right_clear && diag_right_clear;
-		direction = 1;
-	}
-	else if(!can_move && direction == 1)
-	{
-		uint8_t left_clear = handler->in_world(material->position.x -1, material->position.y) && handler->get_material(material->position.x - 1, material->position.y) == nullptr;
-		uint8_t diag_left_clear = handler->in_world(material->position.x - 1, material->position.y + 1) && handler->get_material(material->position.x - 1, material->position.y + 1) == nullptr;
-		can_move = left_clear && diag_left_clear;
-		direction = 0;
-	}
-
-	if(!can_move)
-	{
-		return false;
-	}
-
-	if(direction == 0)
-	{
-		vector2 new_pos {material->position.x - 1, material->position.y + 1};
-		handler->move_list.push_back({{material->position.x, material->position.y}, {new_pos.x, new_pos.y}});
-		return true;
-	}
-	else if(direction == 1)
-	{
-		vector2 new_pos {material->position.x + 1, material->position.y + 1};
-		handler->move_list.push_back({{material->position.x, material->position.y}, {new_pos.x, new_pos.y}});
-		return true;
-	}
-	return false;
-}
-
+#include <iostream>
 
 void Elements::update_sand(ELEMENT_UPDATE_ARGS)
 {
 	//Try to move
-	if(update_down(material, dT) || update_side_down(material)){
-		return;
-	}
+	solid_physics_update(material, dT);
 
 	//If not move then swap position with whatever below sand
 	Material* displace_mat = handler->in_world(material->position.x, material->position.y + 1)? handler->get_material(material->position.x, material->position.y + 1): nullptr;
@@ -279,9 +29,6 @@ void Elements::update_sand(ELEMENT_UPDATE_ARGS)
 
 void Elements::update_smoke(ELEMENT_UPDATE_ARGS)
 {
-	if(update_up(material) || update_side_up(material)){
-		return;
-	}
 
 	Material* displace_mat;
 	if(handler->in_world(material->position.x, material->position.y - 1))
@@ -308,9 +55,6 @@ void Elements::update_smoke(ELEMENT_UPDATE_ARGS)
 void Elements::update_water(ELEMENT_UPDATE_ARGS)
 {
 
-	if(update_down(material, dT) || update_side_down(material) || update_side(material)){
-		return;
-	}
 }
 
 void Elements::update_wood(ELEMENT_UPDATE_ARGS)
@@ -502,9 +246,6 @@ void Elements::update_fire(ELEMENT_UPDATE_ARGS)
 
 void Elements::update_acid(ELEMENT_UPDATE_ARGS)
 {
-	if(update_down(material, dT) || update_side_down(material) || update_side(material)){
-		return;
-	}
 
 	vector2 mat_pos{material->position.x, material->position.y};
 	Material* up = handler->in_world(mat_pos.x, mat_pos.y - 1)? handler->get_material(material->position.x, material->position.y - 1): nullptr;
@@ -584,7 +325,6 @@ void Elements::update_acid(ELEMENT_UPDATE_ARGS)
 }
 
 void Elements::update_oil(ELEMENT_UPDATE_ARGS){
-	if(update_down(material, dT) || update_side_down(material) || update_side(material));
 
 	if(material->state != BURNING)
 	{
@@ -707,7 +447,6 @@ void Elements::update_oil(ELEMENT_UPDATE_ARGS){
 
 void Elements::update_flammable_gas(ELEMENT_UPDATE_ARGS)
 {
-	if(update_up(material) || update_side_up(material));
 
 	Material* displace_mat;
 	if(handler->in_world(material->position.x, material->position.y - 1))
@@ -826,11 +565,99 @@ void Elements::update_flammable_gas(ELEMENT_UPDATE_ARGS)
 			mat_chunk->asleep = 0;
 		}
 	}
-
-
-
 }
 
-void Elements::init(ChunkHandler* handler){
+vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS)
+{
+	vector2 max_pos = {material->position.x + (int)(material->velocity.x + 0.5f), material->position.y + (int)(material->velocity.y + 0.5f)};
+	vector2 updated_pos = pos_update(&material->position, &material->velocity);
+
+	bool collision = max_pos != update_pos;
+}
+
+vector2 Elements::pos_update(vector2* pos, fvector2* velocity)
+{
+	if(velocity->x == 0 && velocity->y == 0)
+	{
+		return {-1, -1};
+	}
+
+	int vel_x = velocity->x > 0? static_cast<int>(velocity->x + 0.5f): static_cast<int>(velocity->x - 0.5f);
+	int vel_y = velocity->y > 0? static_cast<int>(velocity->y + 0.5f): static_cast<int>(velocity->y - 0.5f);
+
+	vector2 update_pos {pos->x + vel_x, pos->y + vel_y};
+
+	if(!handler->in_world(update_pos.x, update_pos.y))
+	{
+		update_pos.x = update_pos.x < 0? 0: update_pos.x;
+		update_pos.x = update_pos.x >= world_width? world_width - 1: update_pos.x;
+		update_pos.y = update_pos.y < 0? 0: update_pos.y;
+		update_pos.y = update_pos.y >= world_height? world_height - 1: update_pos.y;
+	}
+
+	int x_offset = update_pos.x - pos->x;
+	int y_offset = update_pos.y - pos->y;
+	int offset = 1;
+	float slope = x_offset != 0 && y_offset != 0? ((float)y_offset)/((float)x_offset): 0.0f;
+
+	if(x_offset == 0 && y_offset == 0)
+	{
+		return {-1, -1};
+	}
+
+	if(slope == 0.0f && y_offset != 0)
+	{
+		while(offset <= std::abs(y_offset) && handler->in_world(pos->x, pos->y + offset) && !handler->get_material(pos->x, pos->y + offset)){
+			offset ++;
+		}
+		if(offset == 1)
+		{
+			return {-1, -1};
+		}
+		return {pos->x, y_offset > 0? pos->y + offset - 1: pos->y - offset + 1};
+	}
+
+	if(slope == 0.0f && x_offset != 0)
+	{
+		while(offset <= std::abs(x_offset) && handler->in_world(pos->x + offset, pos->y) && !handler->get_material(pos->x + offset, pos->y)){
+			offset ++;
+		}
+		if(offset == 1)
+		{
+			return {-1, -1};
+		}
+		return {x_offset > 0? pos->x + offset - 1: pos->x - offset + 1, pos->y};
+	}
+
+	assert(slope != 0.0f);
+
+	float y_intercept = ((float)pos->y) - (slope * ((float)pos->x));
+
+
+	int x_coord = pos->x + offset;
+	int y_coord = (int)(slope * ((float)x_coord) + y_intercept);
+
+
+	while(offset <= std::abs(x_offset) && handler->in_world(x_coord, y_coord) && !handler->get_material(x_coord, y_coord))
+	{
+		offset ++;
+		x_coord = pos->x + offset;
+		y_coord = (int)(slope * ((float)x_coord) + y_intercept);
+	}
+
+	if(offset == 1)
+	{
+		return {-1, -1};
+	}
+
+
+
+	return {slope > 0? pos->x + offset - 1: pos->x - offset + 1, (int)(slope * ((float)x_coord - 1) + y_intercept)};
+}
+
+void Elements::init(ChunkHandler* handler, int wW, int wH){
 	this->handler = handler;
+	world_width = wW;
+	world_height = wH;
+	gen.seed(rd());
 }

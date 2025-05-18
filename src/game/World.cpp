@@ -14,10 +14,10 @@ void World::init_world(int cW, int cH, int wW, int wH, PoolArena* material_arena
 	handler.init_chunk_handler(cW, cH, wW, wH, material_arena);
 }
 
-void World::create_materials(int center_x, int center_y, int width, int height, MatType type)
+void World::create_materials(int center_x, int center_y, const vector2& draw_size, MatType type)
 {
 
-	if(width % 2 == 0 || height % 2 == 0)
+	if(draw_size.x % 2 == 0 || draw_size.y % 2 == 0)
 	{
 		return;
 	}
@@ -27,11 +27,11 @@ void World::create_materials(int center_x, int center_y, int width, int height, 
 		return;
 	}
 
-	int num_cols = width;
-	int num_rows = height;
+	int num_cols = draw_size.x;
+	int num_rows = draw_size.y;
 
-	int half_x = width/2;
-	int half_y = height/2;
+	int half_x = draw_size.x/2;
+	int half_y = draw_size.y/2;
 
 	int lX = center_x - half_x;
 	int rX = center_x + half_x;

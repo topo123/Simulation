@@ -12,7 +12,8 @@ enum Properties{
 	SIDE = 0b00000100,
 	UP = 0b00001000,
 	UP_SIDE = 0b00010000,
-	SHORT_LIVED = 0b00100000
+	SHORT_LIVED = 0b00100000,
+	PHYSICS = 0b01000000
 };
 
 enum ReactionDirection{
@@ -40,6 +41,15 @@ enum State{
 struct fvector2{
 	float x{0};
 	float y{0};
+
+	bool operator==(const fvector2& other) const
+	{
+		return x == other.x && y == other.x;
+	}
+	bool operator!=(const fvector2& other)const
+	{
+		return other.x != x || other.y != y;
+	}
 };
 
 struct vector2
@@ -59,6 +69,11 @@ struct vector2
 	bool operator==(const vector2& other) const
 	{
 		return other.x == x && other.y == y;
+	}
+
+	bool operator!=(const vector2& other)const
+	{
+		return other.x != x || other.y != y;
 	}
 };
 

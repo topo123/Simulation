@@ -15,6 +15,7 @@ bool mousePressed = false;
 bool save_world = false;
 bool erase = false;
 MatType material_type = MatType::SAND;
+const vector2 draw_size {11, 11};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -166,10 +167,7 @@ void game_loop(std::string name)
 	int success = init_window(&window);
 	assert(success == 0);
 
-	std::cout << std::to_string(sizeof(Material)) << '\n';
-	std::cout << "Creating material arena\n";
 	PoolArena* arena = init_pool(800 * 600, sizeof(Material));
-	std::cout << "Creating world\n";
 	World world;
 	world.init_world(80, 60, 800, 600, arena);
 	if(name != "")
@@ -199,7 +197,7 @@ void game_loop(std::string name)
 	{
 		if(mousePressed)
 		{
-			world.create_materials(mouse_x, mouse_y, 11, 11, material_type);
+			world.create_materials(mouse_x, mouse_y, draw_size, material_type);
 		}
 		if(erase)
 		{

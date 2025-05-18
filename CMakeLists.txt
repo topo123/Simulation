@@ -23,7 +23,7 @@ if(WIN32)
 endif()
 
 if(UNIX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address  -fno-omit-frame-pointer -g")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address  -fno-omit-frame-pointer -g -O0")
 endif()
 
 include_directories(./glad/include)
@@ -46,6 +46,8 @@ target_include_directories(arena PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(render PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(world PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(utilities PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 
 add_executable(main ./src/game/main.cpp)
 
