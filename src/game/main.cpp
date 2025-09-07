@@ -10,7 +10,7 @@
 
 double mouse_x, mouse_y;
 bool paused = false;
-bool debug_mode = false;
+bool debug_mode = true;
 bool mousePressed = false;
 bool save_world = false;
 bool erase = false;

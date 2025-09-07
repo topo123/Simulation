@@ -1,4 +1,5 @@
 #include <World.hpp>
+#include <unordered_set>
 #include <cassert>
 #include <iostream>
 #include <fstream>
@@ -232,7 +233,7 @@ void World::update_world(const float dT)
 	for(size_t i = 0; i < handler.delete_chunks.size(); i ++){
 		delete_chunk = handler.delete_chunks[i];
 		delete_chunk->update_list.clear();
-		delete_chunk->materials.clear();
+		delete[] delete_chunk->materials;
 		delete delete_chunk;
 	}
 

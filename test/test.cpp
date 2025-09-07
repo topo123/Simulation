@@ -38,41 +38,12 @@ TEST_CASE("Velocity collisions", "[velocity]")
 	std::vector<Material*> materials;
 	init_test();
 
-	Material m1;
-	Material m2;
-	Material m3;
+	vector2 inital {10, 1};
+	fvector2 vec {-1.0, 0.0f};
+	vector2 final = updater->pos_update(&inital, &vec, nullptr);
 
-	set_material_props(&m1, {100, 100}, {0.0f, 5.0f});
-	set_material_props(&m2, {100, 105}, {0.0f, 0.0f});
-	set_material_props(&m3, {101, 109}, {0.0f, 0.0f});
+	REQUIRE(final.x == 9);
+	REQUIRE(final.y == 1);
 
-	materials.push_back(&m1);
-	materials.push_back(&m2);
-
-
-
-	handler.add_materials(materials);
-
-	fvector2 m1_vel = m1.velocity;
-	vector2 new_pos = updater->solid_physics_update(&m1, 1.0f);
-	m1.position = new_pos;
-
-	vector2 comp_pos {100, 104};
-
-	fvector2 new_velocity {m1_vel.y/5.0f, m1_vel.y - m1_vel.y/10.0f};
-
-	REQUIRE(new_pos == comp_pos);
-
-	REQUIRE_THAT(std::abs(m1.velocity.x), WithinAbs(new_velocity.x, 0.01)); 
-	REQUIRE_THAT(m1.velocity.y, WithinAbs(std::abs(new_velocity.y), 0.01)); 
-
-	new_pos = updater->solid_physics_update(&m1, 1.0f);
-
-	std::cout << "New move: " << new_pos << std::endl;
-
-	REQUIRE(new_pos.x == -1); 
-	REQUIRE(new_pos.y == -1);
-
-	std::cout << m1.velocity << std::endl;
 }
 

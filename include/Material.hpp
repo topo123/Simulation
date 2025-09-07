@@ -5,6 +5,7 @@
 
 #define NUM_COLORS 12.0f
 
+
 enum Properties{
 	STATIC = 0b00000000,
 	DOWN = 0b00000001,
@@ -87,17 +88,17 @@ struct vector_hash
 
 enum MatType: uint32_t
 {
-	NONE,
-	SAND,
-	WATER,
-	SMOKE,
-	FIRE,
-	WOOD,
-	STONE,
-	ACID,
-	NITRO,
-	OIL,
-	FLAMMABLE_GAS
+	SAND = 0,
+	WATER = 1,
+	SMOKE = 2,
+	FIRE = 3,
+	WOOD = 4,
+	STONE = 5,
+	ACID = 6,
+	NITRO = 7,
+	OIL = 8,
+	FLAMMABLE_GAS = 9,
+	NONE = 10
 };
 
 struct MatTexCoords
@@ -116,6 +117,13 @@ struct MatTexCoords
 	const float GRID_DEBUG = {11.0f/NUM_COLORS};
 };
 
+enum MaterialState{
+	SOLID,
+	LIQUID,
+	GAS,
+	ENERGY
+};
+
 struct serialized_material{
 	int x_pos;
 	int y_pos;
@@ -124,17 +132,25 @@ struct serialized_material{
 	uint32_t material_type;
 };
 
+struct MaterialProps
+{
+	Properties property;
+	ReactionProperties reaction;
+	ReactionDirection reaction_direction;
+	int health;
+	float tex_offset;
+	MaterialState mat_state;
+};
+
 struct Material
 {
 	vector2 position {0, 0};
 	fvector2 velocity {0, 0};
 	MatType material = MatType::NONE;
-	Properties property = Properties::STATIC;
 	State state = State::NORMAL;
-	ReactionProperties reaction = ReactionProperties::STABLE;
-	ReactionDirection react_direct = ReactionDirection::RUP;
 	float tex_offset;
 	int health;
+	int chunk_index;
 };
 
 

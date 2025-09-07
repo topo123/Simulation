@@ -11,18 +11,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if(UNIX)
-	set(CMAKE_CXX_COMPILER g++)
-elseif(WIN32)
-	set(CMAKE_CXX_COMPILER g++)
-endif()
+set(CMAKE_CXX_COMPILER g++)
 
 if(WIN32)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -mwindows")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
-endif()
-
-if(UNIX)
+elseif(UNIX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address  -fno-omit-frame-pointer -g -O0")
 endif()
 

@@ -4,7 +4,6 @@
 
 struct FreeList
 {
-	void* mem_block {nullptr};
 	FreeList* next_node {nullptr};
 };
 

@@ -7,7 +7,7 @@
 #include <PoolArena.hpp>
 #include <Material.hpp>
 #include <unordered_map>
-#include <unordered_set>
+#include <array>
 #include <vector>
 #include <random>
 
@@ -15,6 +15,8 @@ class ChunkHandler
 {
 
 	PoolArena* material_arena;
+	PoolArena* material_prop_arena;
+
 	int x_chunks;
 	int y_chunks;
 
@@ -35,10 +37,13 @@ public:
 		int frames;
 	};
 
+	int chunk_width;
+	int chunk_height;
+
 	struct Chunk
 	{
-		std::vector<Material*> materials;
-		std::unordered_set<Material*> update_list;
+		Material** materials;
+		std::vector<Material*> update_list;
 		vector2 d_upper{-1,-1};
 		vector2 d_lower{-1, -1};
 		vector2 coords {0, 0};
@@ -52,12 +57,13 @@ public:
 	std::vector<Chunk*> add_materials_list;
 	std::vector<Chunk*> delete_chunks;
 	std::vector<Chunk*> iter_chunks;
+	std::vector<MaterialProps*> material_props;
+
 	std::unordered_map<Material*, Animation> animation_list;
 	std::unordered_map<vector2, Chunk*, vector_hash> chunks;
+
 	MatTexCoords tex_coords;
 	Elements element_updater;
-	int chunk_width;
-	int chunk_height;
 	int chunk_size;
 	int world_width;
 	int world_height;
@@ -69,10 +75,12 @@ public:
 	std::string print_pos(fvector2& pos);
 
 	std::vector<vector2> get_rxn_coord(Material* material);
-	inline size_t index(int x, int y)
+
+	inline int index(int x, int y)
 	{
 		return ((y % chunk_height) * chunk_width) + (x % chunk_width);
 	};
+
 	inline Material* get_material(int x, int y)
 	{
 		Chunk* chunk = get_chunk(x, y);
@@ -87,7 +95,7 @@ public:
 	void make_dirty_rect(Chunk* chunk);
 	void modify_rect(Chunk* chunk, vector2* old_pos, vector2* new_pos);
 	void commit_changes();
-	void init_chunk_handler(int chunk_width, int chunk_height, int world_width,  int world_height, PoolArena* arena);
+	void init_chunk_handler(int chunk_width, int chunk_height, int world_width, int world_height, PoolArena* arena);
 	void add_materials(const std::vector<Material*>& materials);
 	void update_chunk(Chunk* chunk, const float dT);
 	void draw_chunk_to_texture(Chunk* chunk, Renderer* render, bool debug_mode);
@@ -95,6 +103,7 @@ public:
 	void swap_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
 	void remove_from_anim_list(Material* material);
 	void wake_up_neighbor_chunks(Chunk* chunk);
+	void init_material_props();
 
 	inline Chunk* get_chunk(int x, int y){
 		vector2 chunk_coords {x/chunk_width, y/chunk_height};
@@ -107,6 +116,14 @@ public:
 	inline bool in_world(int x, int y){
 		return x >= 0 && x < world_width && y >= 0 && y < world_height;
 	};
+
+	inline void remove_mat_from_update_list(Chunk* chunk, Material* remove_material)
+	{
+		chunk->update_list.back()->chunk_index = remove_material->chunk_index;
+		chunk->update_list.back()->chunk_index = remove_material->chunk_index;
+		chunk->update_list[remove_material->chunk_index] = chunk->update_list.back();
+		chunk->update_list.pop_back();
+	}
 
 	~ChunkHandler();
 

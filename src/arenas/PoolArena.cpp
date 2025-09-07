@@ -38,9 +38,8 @@ void* allocate(PoolArena* arena)
 	if(arena->list != nullptr)
 	{
 		FreeList* head = arena->list;
-		void* mem_block = head->mem_block;
+		void* mem_block = (void*)head;
 		arena->list = head->next_node;
-		delete head;
 		return mem_block;
 	}
 
@@ -56,8 +55,7 @@ int deallocate(PoolArena* arena, void* mem_block)
 		return -1;
 	}
 	FreeList* head = arena->list;
-	arena->list = new FreeList();
-	arena->list->mem_block = mem_block;
+	arena->list = (FreeList*)mem_block;
 	arena->list->next_node = head;
 	return 0;
 }
@@ -73,14 +71,6 @@ int free_arena(PoolArena* arena)
 	int free_failure = VirtualFree(arena->arena_ptr, 0, MEM_RELEASE);
 	assert(free_failure == 0);
 #endif
-
-	FreeList* list = arena->list;
-	while(list != nullptr)
-	{
-		FreeList* next_node = list;
-		list = list->next_node;
-		delete next_node;
-	}
 
 	delete arena;
 	return free_failure;
