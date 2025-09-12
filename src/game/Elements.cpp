@@ -3,23 +3,18 @@
 #include <cstdint>
 #include <iostream>
 #include <random>
+#include <string>
 
-void Elements::clamp_velocity(fvector2* velocity, float delta)
+std::string Elements::print_vel(float x, float y)
 {
-	velocity->x = velocity->x <= 0.5f? 0.0f: velocity->x;
-	velocity->y = velocity->y <= 0.5f? 0.0f: velocity->y;
+	return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 }
 
-bool Elements::prob_gen(float chance)
-{
-	random_generator = std::bernoulli_distribution(chance);
-	return random_generator(gen);
-}
 
 void Elements::update_sand(ELEMENT_UPDATE_ARGS)
 {
 	//Try to move
-	vector2 updated_pos = solid_physics_update(material, dT, 0.85f, 0.3f);
+	vector2 updated_pos = solid_physics_update(material, dT, 0.8f, 2.0f);
 	if(updated_pos.x != -1)
 	{
 		handler->move_list.push_back({material->position, updated_pos});
@@ -587,282 +582,271 @@ void Elements::update_flammable_gas(ELEMENT_UPDATE_ARGS)
 
 vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance, float friction_constant)
 {
-
-	int vel_x = material->velocity.x >= 0? static_cast<int>(material->velocity.x + 0.5f): static_cast<int>(material->velocity.x - 0.5f);
-	int vel_y = material->velocity.y >= 0? static_cast<int>(material->velocity.y + 0.5f): static_cast<int>(material->velocity.y - 0.5f);
-
-	if(vel_y > 0 && prob_gen(inertia_chance))
-	{
-		Material* left_material;
-		Material* right_material;
-
-		if(handler->in_world(material->position.x - 1, material->position.y) && (left_material = handler->get_material(material->position.x - 1, material->position.y)) && std::abs(left_material->velocity.x) < 0.5f && left_material->velocity.y < 0.5f)
-		{
-			left_material->velocity.y = 1.0f;
-		}
-		if(handler->in_world(material->position.x + 1, material->position.y) && (right_material = handler->get_material(material->position.x + 1, material->position.y)) && std::abs(right_material->velocity.x) < 0.5f && right_material->velocity.y < 0.5f)
-		{
-			right_material->velocity.y = 1.0f;
-		}
-	}
-
-	vector2 max_pos = {material->position.x + vel_x, material->position.y + vel_y}; 
-	if(!handler->in_world(max_pos.x, max_pos.y))
-	{
-		max_pos.x = max_pos.x < 0? 0: max_pos.x;
-		max_pos.x = max_pos.x >= world_width? world_width - 1: max_pos.x;
-		max_pos.y = max_pos.y < 0? 0: max_pos.y;
-		max_pos.y = max_pos.y >= world_height? world_height - 1: max_pos.y;
-	}
+	vector2 grid_vel;
+	round_velocity(&material->velocity, &grid_vel);
 
 	Material* colliding_material = nullptr;
 	vector2 updated_pos = pos_update(&material->position, &material->velocity, &colliding_material);
+	vector2 colliding_mat_pos = colliding_material? colliding_material->position: (vector2){-1, -1};
+	vector2 mat_pos = material->position;
+	//updated_pos = updated_pos.x == -1? mat_pos: updated_pos;
 
-	if(colliding_material && handler->material_props[colliding_material->material]->mat_state == SOLID && vel_y > 0 && vel_x == 0)
+	//Direction collision occurs
+	bool collision_below;
+	bool collision_diag_right;
+	bool collision_diag_left;
+	bool collision_left;
+	bool collision_right;
+
+	if(updated_pos.x != -1)
 	{
-		bool no_left_colliding_material = handler->in_world(colliding_material->position.x - 1, colliding_material->position.y) 
-			&& !handler->get_material(colliding_material->position.x - 1, colliding_material->position.y);
-		bool no_right_colliding_material = handler->in_world(colliding_material->position.x + 1, colliding_material->position.y) 
-			&& !handler->get_material(colliding_material->position.x + 1, colliding_material->position.y);	
-
-		bool no_left_material = handler->in_world(colliding_material->position.x - 1, colliding_material->position.y - 1) && !handler->get_material(colliding_material->position.x - 1, colliding_material->position.y - 1);
-		bool no_right_material = handler->in_world(colliding_material->position.x + 1, colliding_material->position.y - 1) && !handler->get_material(colliding_material->position.x + 1, colliding_material->position.y - 1);
-
-
-		if(no_left_colliding_material && no_right_colliding_material) 
-		{
-			updated_pos.x = prob_gen(0.5f)? colliding_material->position.x + 1: colliding_material->position.x - 1;
-			updated_pos.y = colliding_material->position.y;
-		}
-		else if(no_left_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x - 1;
-			updated_pos.y = colliding_material->position.y;
-		}
-		else if(no_right_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x + 1;
-			updated_pos.y = colliding_material->position.y;
-		}
-		else if(no_left_material && no_right_material)
-		{
-			material->velocity.x = prob_gen(0.5f)? material->velocity.y/10.0f: -material->velocity.y/10.0f;
-			material->velocity.y = 0.0f;
-		}
-		else if(no_right_material)
-		{
-			material->velocity.x = material->velocity.y/10.0f;
-			material->velocity.y = 0.0f;
-		}
-		else if(no_left_material)
-		{
-			material->velocity.x = -material->velocity.y/10.0f;
-			material->velocity.y = 0.0f;
-		}
-		else{
-			material->velocity.x = 0.0f;
-		}
-		return updated_pos;
-	}
-	else if(colliding_material && handler->material_props[colliding_material->material]->mat_state == SOLID && vel_y > 0 && vel_x > 0
-		&& colliding_material->position.x > updated_pos.x && colliding_material->position.y == updated_pos.y)
-	{
-		bool no_diag_left_colliding_material = handler->in_world(colliding_material->position.x - 1, colliding_material->position.y + 1) 
-			&& !handler->get_material(colliding_material->position.x - 1, colliding_material->position.y + 1);
-
-		updated_pos.x = colliding_material->position.x -  1;
-		updated_pos.y = colliding_material->position.y;
-
-		if(no_diag_left_colliding_material)
-		{
-			material->velocity.x = 0;
-		}
-		else{
-			material->velocity.x = 0;
-			material->velocity.y = 0;
-		}
-		return updated_pos;
-	}
-	else if(colliding_material && handler->material_props[colliding_material->material]->mat_state == SOLID && vel_y > 0 && vel_x > 0
-		&& colliding_material->position.x > updated_pos.x && colliding_material->position.y > updated_pos.y)
-	{
-		bool no_material_above_colliding_material = handler->in_world(colliding_material->position.x, colliding_material->position.y - 1) 
-			&& !handler->get_material(colliding_material->position.x, colliding_material->position.y - 1);
-		bool no_material_left_colliding_material = handler->in_world(colliding_material->position.x - 1, colliding_material->position.y)
-			&& !handler->get_material(colliding_material->position.x - 1, colliding_material->position.y);
-
-		if(no_material_left_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x - 1;
-			updated_pos.y = colliding_material->position.y;
-			material->velocity.x = 0;
-		}
-		else if(no_material_above_colliding_material && !no_material_left_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x - 1;
-			updated_pos.y = colliding_material->position.y - 1;
-			material->velocity.x += material->velocity.y/10.0f;
-			material->velocity.y = 0;
-		}
-		else if(!no_material_above_colliding_material && !no_material_left_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x - 1;
-			updated_pos.y = colliding_material->position.y - 1;
-			material->velocity.x = 0;
-			material->velocity.y = 0;
-		}
-		return updated_pos;
-	}
-	else if(colliding_material && handler->material_props[colliding_material->material]->mat_state == SOLID && vel_y > 0 && vel_x > 0
-		&& colliding_material->position.x == updated_pos.x && colliding_material->position.y > updated_pos.y)
-	{
-		bool no_right_colliding_material = handler->in_world(colliding_material->position.x + 1, colliding_material->position.y + 1)
-			&& !handler->get_material(colliding_material->position.x + 1, colliding_material->position.y + 1);
-		bool no_diag_up_right_colliding_material = handler->in_world(colliding_material->position.x + 1, colliding_material->position.y - 1)
-			&& !handler->get_material(colliding_material->position.x + 1, colliding_material->position.y - 1);
-
-		if(no_right_colliding_material && no_diag_up_right_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x + 1;
-			updated_pos.y = colliding_material->position.y;
-			material->velocity.x -= material->velocity.x/10.0f;
-		}
-		else if(!no_diag_up_right_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x;
-			updated_pos.y = colliding_material->position.y - 1;
-			material->velocity.x = 0;
-			material->velocity.y = 0;
-		}
-		else if(!no_right_colliding_material && no_diag_up_right_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x;
-			updated_pos.y = colliding_material->position.y - 1;
-			material->velocity.x += material->velocity.y/10.0f;
-			material->velocity.y = 0;
-		}
-		return updated_pos;
-	}
-	else if(colliding_material && handler->material_props[colliding_material->material]->mat_state == SOLID && vel_y > 0 && vel_x < 0
-		&& colliding_material->position.x < updated_pos.x && colliding_material->position.y == updated_pos.y)
-	{
-		bool no_diag_right_colliding_material = handler->in_world(colliding_material->position.x + 1, colliding_material->position.y + 1) 
-			&& !handler->get_material(colliding_material->position.x + 1, colliding_material->position.y + 1);
-
-		updated_pos.x = colliding_material->position.x - 1;
-		updated_pos.y = colliding_material->position.y;
-
-		if(no_diag_right_colliding_material)
-		{
-			material->velocity.x = 0;
-		}
-		else{
-			material->velocity.x = 0;
-			material->velocity.y = 0;
-		}
-		return updated_pos;
-	}
-	else if(colliding_material && handler->material_props[colliding_material->material]->mat_state == SOLID && vel_y > 0 && vel_x < 0
-		&& colliding_material->position.x < updated_pos.x && colliding_material->position.y > updated_pos.y)
-	{
-		bool no_material_above_colliding_material = handler->in_world(colliding_material->position.x, colliding_material->position.y - 1) 
-			&& !handler->get_material(colliding_material->position.x, colliding_material->position.y - 1);
-		bool no_material_right_colliding_material = handler->in_world(colliding_material->position.x + 1, colliding_material->position.y)
-			&& !handler->get_material(colliding_material->position.x + 1, colliding_material->position.y);
-
-		if(no_material_right_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x + 1;
-			updated_pos.y = colliding_material->position.y;
-			material->velocity.x = 0;
-		}
-		else if(no_material_above_colliding_material && !no_material_right_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x + 1;
-			updated_pos.y = colliding_material->position.y + 1;
-			material->velocity.x -= material->velocity.y/10.0f;
-			material->velocity.y = 0;
-		}
-		else if(!no_material_above_colliding_material && !no_material_right_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x + 1;
-			updated_pos.y = colliding_material->position.y + 1;
-			material->velocity.x = 0;
-			material->velocity.y = 0;
-		}
-		return updated_pos;
-	}
-	else if(colliding_material && handler->material_props[colliding_material->material]->mat_state == SOLID && vel_y > 0 && vel_x < 0
-		&& colliding_material->position.x == updated_pos.x && colliding_material->position.y > updated_pos.y)
-	{
-		bool no_left_colliding_material = handler->in_world(colliding_material->position.x - 1, colliding_material->position.y + 1)
-			&& !handler->get_material(colliding_material->position.x - 1, colliding_material->position.y + 1);
-		bool no_diag_up_left_colliding_material = handler->in_world(colliding_material->position.x - 1, colliding_material->position.y - 1)
-			&& !handler->get_material(colliding_material->position.x - 1, colliding_material->position.y - 1);
-
-		if(no_left_colliding_material && no_diag_up_left_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x - 1;
-			updated_pos.y = colliding_material->position.y;
-			material->velocity.x -= material->velocity.x/10.0f;
-		}
-		else if(!no_diag_up_left_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x;
-			updated_pos.y = colliding_material->position.y - 1;
-			material->velocity.x = 0;
-			material->velocity.y = 0;
-		}
-		else if(!no_left_colliding_material && no_diag_up_left_colliding_material)
-		{
-			updated_pos.x = colliding_material->position.x;
-			updated_pos.y = colliding_material->position.y - 1;
-			material->velocity.x -= material->velocity.y/10.0f;
-			material->velocity.y = 0;
-		}
-		return updated_pos;
-	}
-
-	bool on_world_ground = updated_pos.y == world_height - 1;
-	bool ground_exists = handler->in_world(updated_pos.x, updated_pos.y + 1) && handler->get_material(updated_pos.x, updated_pos.y);
-	bool grounded = on_world_ground || ground_exists;
-
-
-	//Gravity
-	if(!colliding_material && material->position.y <= world_height - 1 && !grounded)
-	{
-		material->velocity.y += g_force * dT;
+		collision_below = colliding_material && colliding_mat_pos.x == updated_pos.x && colliding_mat_pos.y > updated_pos.y;
+		collision_diag_right = colliding_material && colliding_mat_pos.x > updated_pos.x && colliding_mat_pos.y > updated_pos.y;
+		collision_diag_left = colliding_material && colliding_mat_pos.x < updated_pos.x && colliding_mat_pos.y > updated_pos.y;
+		collision_left = colliding_material && colliding_mat_pos.x < updated_pos.x && colliding_mat_pos.y == updated_pos.y;
+		collision_right = colliding_material && colliding_mat_pos.x > updated_pos.x && colliding_mat_pos.y == updated_pos.y;
 	}
 	else
 	{
-		material->velocity.y = 0;
+		collision_below = colliding_material && colliding_mat_pos.x == mat_pos.x && colliding_mat_pos.y > mat_pos.y;
+		collision_diag_right = colliding_material && colliding_mat_pos.x > mat_pos.x && colliding_mat_pos.y > mat_pos.y;
+		collision_diag_left = colliding_material && colliding_mat_pos.x < mat_pos.x && colliding_mat_pos.y > mat_pos.y;
+		collision_left = colliding_material && colliding_mat_pos.x < mat_pos.x && colliding_mat_pos.y == mat_pos.y;
+		collision_right = colliding_material && colliding_mat_pos.x > mat_pos.x && colliding_mat_pos.y == mat_pos.y;
 	}
 
-	//Air resitance and friction, essentially no collision just decrease x no matter what y is
-	if(!colliding_material && vel_x != 0)
+	//Direction particle is falling
+	bool falling_down = grid_vel.x == 0 && grid_vel.y > 0;
+	bool falling_diag_left = grid_vel.x < 0 && grid_vel.y > 0;
+	bool falling_diag_right = grid_vel.x > 0 && grid_vel.y > 0;
+
+	assert((collision_below ^ collision_diag_right ^ collision_diag_left ^ collision_left ^ collision_right) ^ 
+				(!collision_below && !collision_diag_right && !collision_diag_left && !collision_left && !collision_right));
+
+	if(updated_pos.x == mat_pos.x && updated_pos.y == mat_pos.y && colliding_material)
 	{
-		material->velocity.x = material->velocity.x > 0? material->velocity.x - friction_constant * dT: material->velocity.x + friction_constant * dT;
+		std::cout << "Velocity is: " << print_vel(material->velocity.x, material->velocity.y) << std::endl;
 	}
 
-
-
-	//Collision with edge of the screen
-	if(vel_y > 0 && updated_pos.y == world_height - 1)
+	if(collision_below)
 	{
-		material->velocity.x = prob_gen(0.5f)? material->velocity.y/2.0f: -material->velocity.y/2.0f;
-		material->velocity.y = 0;
+		Material* left_colliding_material = handler->in_world(colliding_mat_pos.x - 1, colliding_mat_pos.y)? handler->get_material(colliding_mat_pos.x - 1, colliding_mat_pos.y): dummy_material; 
+		Material* right_colliding_material = handler->in_world(colliding_mat_pos.x + 1, colliding_mat_pos.y)? handler->get_material(colliding_mat_pos.x + 1, colliding_mat_pos.y): dummy_material;
+		Material* left_material = handler->in_world(colliding_mat_pos.x - 1, colliding_mat_pos.y - 1)? handler->get_material(colliding_mat_pos.x - 1, colliding_mat_pos.y - 1): dummy_material;
+		Material* right_material = handler->in_world(colliding_mat_pos.x + 1, colliding_mat_pos.y - 1)? handler->get_material(colliding_mat_pos.x + 1, colliding_mat_pos.y - 1): dummy_material;
+
+		bool grounded = left_colliding_material && left_colliding_material != dummy_material && right_colliding_material && right_colliding_material != dummy_material;
+		bool blocked = left_material && left_material != dummy_material && right_material && right_material != dummy_material;
+
+		if(!left_colliding_material && !right_colliding_material && falling_down)
+		{
+			updated_pos.x = prob_gen(0.5f)? colliding_mat_pos.x + 1: colliding_mat_pos.x - 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+		else if(!left_colliding_material && falling_down)
+		{
+			updated_pos.x = colliding_mat_pos.x - 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+		else if(!right_colliding_material && falling_down)
+		{
+			updated_pos.x = colliding_mat_pos.x + 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+
+		if(!right_colliding_material && falling_diag_right)
+		{
+			updated_pos.x = colliding_mat_pos.x + 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+		else if(!left_colliding_material && falling_diag_left)
+		{
+			updated_pos.x = colliding_mat_pos.x - 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+
+		if(grounded && !left_material && !right_material && falling_down)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = prob_gen(0.5f)? material->velocity.y/10.0f: -material->velocity.y/10.0f;
+			material->velocity.y = 1.0f;
+		}
+		else if(grounded && !left_material && falling_down)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = -material->velocity.y/10.0f;
+			material->velocity.y = 1.0f;
+		}
+		else if(grounded && !right_material && falling_down)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = material->velocity.y/10.0f;
+			material->velocity.y = 1.0f;
+		}
+		else if(grounded && !right_material && falling_diag_right)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x += material->velocity.y/10.0f;
+			material->velocity.y = 1.0f;
+		}
+		else if(grounded && !left_material && falling_diag_left)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x -= material->velocity.y/10.0f;
+			material->velocity.y = 1.0f;
+		}
+		else if(blocked)
+		{
+			material->phys_state = RESTING;
+			material->velocity.x = 0;
+			material->velocity.y = 1.0f;
+		}
+		
+
+		round_velocity(&material->velocity, &grid_vel);
 	}
-	if(vel_x > 0 && updated_pos.x == world_width - 1)
+	else if(collision_diag_left)
+	{
+		assert(falling_diag_left);
+
+		Material* right_colliding_material = handler->in_world(colliding_mat_pos.x + 1, colliding_mat_pos.y)? handler->get_material(colliding_mat_pos.x + 1, colliding_mat_pos.y): dummy_material;
+		Material* left_material = handler->in_world(colliding_mat_pos.x, colliding_mat_pos.y - 1)? handler->get_material(colliding_mat_pos.x, colliding_mat_pos.y - 1): dummy_material;
+		bool blocked = right_colliding_material && right_colliding_material != dummy_material && left_material && left_material != dummy_material;
+
+		if(!right_colliding_material)
+		{
+			updated_pos.x = colliding_mat_pos.x + 1;
+			updated_pos.y = colliding_mat_pos.y;
+			material->velocity.x = 0;
+		}
+		else if(!left_material)
+		{
+			updated_pos.x = colliding_mat_pos.x;
+			updated_pos.y = colliding_mat_pos.y - 1;
+		}
+		else if(blocked)
+		{
+			material->velocity.y = 1.0f;
+			material->velocity.x = 0;
+			material->phys_state = RESTING;
+		}
+		round_velocity(&material->velocity, &grid_vel);
+	}
+	else if(collision_diag_right)
+	{
+		assert(falling_diag_right);
+
+		Material* left_colliding_material = handler->in_world(colliding_mat_pos.x - 1, colliding_mat_pos.y)? handler->get_material(colliding_mat_pos.x - 1, colliding_mat_pos.y): dummy_material;
+		Material* right_material = handler->in_world(colliding_mat_pos.x, colliding_mat_pos.y - 1)? handler->get_material(colliding_mat_pos.x, colliding_mat_pos.y - 1): dummy_material;
+		bool blocked = left_colliding_material && left_colliding_material != dummy_material && right_material && right_material != dummy_material;
+
+		if(!left_colliding_material)
+		{
+			updated_pos.x = colliding_mat_pos.x - 1;
+			updated_pos.y = colliding_mat_pos.y;
+			material->velocity.x = 0;
+		}
+		else if(!right_material)
+		{
+			updated_pos.x = colliding_mat_pos.x;
+			updated_pos.y = colliding_mat_pos.y - 1;
+		}
+		else if(blocked)
+		{
+			material->velocity.y = 1.0f;
+			material->velocity.x = 0;
+			material->phys_state = RESTING;
+		}
+		round_velocity(&material->velocity, &grid_vel);
+	}
+	else if(collision_left || collision_right)
 	{
 		material->velocity.x = 0;
-	}
-	else if(vel_x < 0 && updated_pos.x == 0)
-	{
-		material->velocity.x = 0;
+		round_velocity(&material->velocity, &grid_vel);
 	}
 
-	clamp_velocity(&material->velocity, 0.01f);
-	//Logic if material can move if it's y-velocity is zeroed 	return updated_pos;
+
+	if(material->phys_state == FREE_FALLING)
+	{
+		Material* left_material = handler->in_world(updated_pos.x - 1, updated_pos.y)? handler->get_material(updated_pos.x - 1, updated_pos.y): dummy_material;
+		Material* right_material = handler->in_world(updated_pos.x + 1, updated_pos.y)? handler->get_material(updated_pos.x + 1, updated_pos.y): dummy_material;
+
+		if(left_material && left_material != dummy_material && left_material->phys_state == RESTING && prob_gen(inertia_chance))
+		{
+			left_material->phys_state = FREE_FALLING;
+		}
+		if(right_material && right_material != dummy_material && right_material->phys_state == RESTING && prob_gen(inertia_chance))
+		{
+			right_material->phys_state = FREE_FALLING;
+		}
+	}
+
+
+	if(material->phys_state == FREE_FALLING && !collision_below)
+	{
+		material->velocity.y += g_force * dT;
+	}
+
+	if((material->phys_state == SLIDING || material->phys_state == FREE_FALLING) && grid_vel.x != 0)
+	{
+		float new_x = grid_vel.x > 0? material->velocity.x - friction_constant * g_force: material->velocity.x + friction_constant * g_force;
+		if((float)grid_vel.x * new_x < 0)
+		{
+			material->velocity.x = 0;
+			material->phys_state = RESTING;
+		}
+		else if(within_eps(new_x, 0, 0.5f) || within_eps(new_x, 0, -0.5f))
+		{
+			material->velocity.x = 0;
+			material->phys_state = RESTING;
+		}
+		else{
+			material->velocity.x = new_x;
+		}
+	}
+
+
+	if(handler->in_world(mat_pos.x, mat_pos.y + 1) && !handler->get_material(mat_pos.x, mat_pos.y + 1) 
+		&& (material->phys_state == RESTING || material->phys_state == SLIDING))
+	{
+		material->velocity.y = 1.0f;
+		material->phys_state = FREE_FALLING;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+
+	if(updated_pos.x == world_width - 1 && grid_vel.x > 0)
+	{
+		material->velocity.x = 0;
+		material->phys_state = RESTING;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+	else if(updated_pos.x == 0 && grid_vel.x < 0)
+	{
+		material->velocity.x = 0;
+		material->phys_state = RESTING;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+
+	if(updated_pos.x == world_height - 1 && grid_vel.y > 0)
+	{
+		material->velocity.y = 1.0f;
+		material->phys_state = RESTING;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+
+
+	if(grid_vel.x == 0 && grid_vel.y == 0)
+	{
+		material->velocity.x = 0;
+		material->velocity.y = 1.0f;
+		material->phys_state = RESTING;
+	}
+
+
+	clamp(material->velocity.x, 0.01f, 0);
+	clamp(material->velocity.y, 0.01f, 0);
+
+
 	return updated_pos;
 }
 
@@ -907,15 +891,19 @@ vector2 Elements::pos_update(vector2* pos, fvector2* velocity, Material** collid
 		while(offset <= std::abs(y_offset) && handler->in_world(pos->x, pos->y + offset) && !handler->get_material(pos->x, pos->y + offset)){
 			offset ++;
 		}
+
+		if(colliding_material)
+		{
+			*colliding_material = y_offset > 0? handler->get_material(pos->x, pos->y + offset): handler->get_material(pos->x, pos->y - offset);
+		}
+
 		if(offset == 1)
 		{
 			return {-1, -1};
 		}
+
+
 		
-		if(colliding_material)
-		{
-			*colliding_material = handler->get_material(pos->x, pos->y + offset);
-		}
 
 		return {pos->x, y_offset > 0? pos->y + offset - 1: pos->y - offset + 1};
 	}
@@ -925,15 +913,17 @@ vector2 Elements::pos_update(vector2* pos, fvector2* velocity, Material** collid
 		while(offset <= std::abs(x_offset) && handler->in_world(pos->x + offset, pos->y) && !handler->get_material(pos->x + offset, pos->y)){
 			offset ++;
 		}
+
+		if(colliding_material)
+		{
+			*colliding_material = x_offset > 0? handler->get_material(pos->x + offset, pos->y): handler->get_material(pos->x - offset, pos->y);
+		}
+
 		if(offset == 1)
 		{
 			return {-1, -1};
 		}
 
-		if(colliding_material)
-		{
-			*colliding_material = handler->get_material(pos->x, pos->y + offset);
-		}
 
 		return {x_offset > 0? pos->x + offset - 1: pos->x - offset + 1, pos->y};
 	}
@@ -956,14 +946,14 @@ vector2 Elements::pos_update(vector2* pos, fvector2* velocity, Material** collid
 		y_coord = (int)(slope * ((float)x_coord) + y_intercept);
 	}
 
-	if(offset == 1)
-	{
-		return {-1, -1};
-	}
-
 	if(colliding_material)
 	{
 		*colliding_material = handler->get_material(x_coord, y_coord);
+	}
+
+	if(offset == 1)
+	{
+		return {-1, -1};
 	}
 
 

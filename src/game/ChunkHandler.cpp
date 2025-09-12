@@ -123,6 +123,7 @@ void ChunkHandler::init_material_props()
 void ChunkHandler::set_material_properties(Material* material, MatType type, vector2* pos)
 {
 	material->state = NORMAL;
+	material->phys_state = FREE_FALLING;
 	material->material = type;
 	material->position.x = pos->x;
 	material->position.y = pos->y;
@@ -695,6 +696,17 @@ void ChunkHandler::init_chunk_handler(int cW, int cH, int wW, int wH, PoolArena*
 	y_chunks = wH/cH;
 	chunk_size = cW * cH;
 	gen.seed(rd());
+
+	element_updater.dummy_material = (Material*)allocate(material_arena);
+	element_updater.dummy_material->state = NORMAL;
+	element_updater.dummy_material->phys_state = RESTING;
+	element_updater.dummy_material->material = NONE;
+	element_updater.dummy_material->position.x = -1;
+	element_updater.dummy_material->position.y = -1;
+	element_updater.dummy_material->velocity.x = -1;
+	element_updater.dummy_material->velocity.y = -1;
+	element_updater.dummy_material->health = -1;
+	element_updater.dummy_material->tex_offset = -1.0f;
 
 	init_material_props();
 }

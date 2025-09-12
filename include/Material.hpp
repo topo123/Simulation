@@ -32,13 +32,6 @@ enum ReactionProperties{
 	STABLE = 0b0000
 };
 
-enum State{
-	BURNING,
-	NORMAL,
-	CONDUCTING
-};
-
-
 struct fvector2{
 	float x{0};
 	float y{0};
@@ -116,13 +109,7 @@ struct MatTexCoords
 	const float DIRTY_DEBUG = {10.0f/NUM_COLORS};
 	const float GRID_DEBUG = {11.0f/NUM_COLORS};
 };
-
-enum MaterialState{
-	SOLID,
-	LIQUID,
-	GAS,
-	ENERGY
-};
+;
 
 struct serialized_material{
 	int x_pos;
@@ -130,6 +117,24 @@ struct serialized_material{
 	float x_vel;
 	float y_vel;
 	uint32_t material_type;
+};
+enum MaterialState{
+	SOLID,
+	LIQUID,
+	GAS,
+	ENERGY
+};
+
+enum State{
+	BURNING,
+	NORMAL,
+	CONDUCTING
+};
+
+enum PhysicsState{
+	FREE_FALLING, 
+	SLIDING, 
+	RESTING
 };
 
 struct MaterialProps
@@ -148,6 +153,7 @@ struct Material
 	fvector2 velocity {0, 0};
 	MatType material = MatType::NONE;
 	State state = State::NORMAL;
+	PhysicsState phys_state = PhysicsState::FREE_FALLING;
 	float tex_offset;
 	int health;
 	int chunk_index;

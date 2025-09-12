@@ -167,7 +167,7 @@ void game_loop(std::string name)
 	int success = init_window(&window);
 	assert(success == 0);
 
-	PoolArena* arena = init_pool(800 * 600, sizeof(Material));
+	PoolArena* arena = init_pool(800 * 600 + 1, sizeof(Material));
 	World world;
 	world.init_world(80, 60, 800, 600, arena);
 	if(name != "")
