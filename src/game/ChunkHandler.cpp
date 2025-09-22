@@ -16,6 +16,27 @@ void ChunkHandler::remove_from_anim_list(Material* material)
 	animation_list.erase(material);
 }
 
+void ChunkHandler::debug_mat(Material* mat)
+{
+	std::cout << "Postion: " << print_pos(mat->position.x, mat->position.y) << "; ";
+	std::cout << "Velocity: " << element_updater.print_vel(mat->velocity.x, mat->velocity.y) << "; ";
+	std::cout << "Rest counter at " << mat->frames_rest << "; ";
+
+	if(mat->phys_state == RESTING)
+	{
+		std::cout << "Physics state: RESTING\n";
+	}
+	else if(mat->phys_state == FREE_FALLING)
+	{
+		std::cout << "Physics state: FREE_FALLING\n";
+	}
+	else if(mat->phys_state == SLIDING)
+	{
+		std::cout << "Physics state: SLIDING\n";
+	}
+
+}
+
 
 bool ChunkHandler::in_anim_list(Material* material){
 	return animation_list.find(material) != animation_list.end();
@@ -45,7 +66,7 @@ void ChunkHandler::init_material_props()
 		SOLID
 	};
 
-	*material_props[WATER] = {static_cast<Properties>(DOWN_SIDE + DOWN + SIDE), 
+	*material_props[WATER] = {static_cast<Properties>(PHYSICS), 
 		static_cast<ReactionProperties>(DISPLACIBLE + ACID_DESTROY),
 		static_cast<ReactionDirection>(RNONE),
 		100,
@@ -123,6 +144,7 @@ void ChunkHandler::init_material_props()
 void ChunkHandler::set_material_properties(Material* material, MatType type, vector2* pos)
 {
 	material->state = NORMAL;
+	material->frames_rest = 0;
 	material->phys_state = FREE_FALLING;
 	material->material = type;
 	material->position.x = pos->x;
@@ -143,6 +165,7 @@ void ChunkHandler::destroy_material(Material* material)
 	Chunk* chunk = get_chunk(pos.x, pos.y);
 	if(chunk->asleep == 1)
 	{
+		wake_up_materials(chunk);
 		chunk->asleep = 0;
 	}
 	assert(chunk != nullptr);
@@ -370,6 +393,7 @@ void ChunkHandler::move_material(Chunk* chunk, Material* material, vector2* old_
 
 		if(new_chunk->asleep == 1)
 		{
+			wake_up_materials(chunk);
 			new_chunk->asleep = 0;
 		}
 
@@ -423,6 +447,7 @@ void ChunkHandler::swap_material(Chunk* chunk, Material* material, vector2* old_
 		Chunk* new_chunk = chunks[new_coords];
 		if(new_chunk->asleep == 1)
 		{
+			wake_up_materials(chunk);
 			new_chunk->asleep = 0;
 		}
 
@@ -538,11 +563,8 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			continue;
 		}
 
-
 		int mat_x = mat->position.x;
 		int mat_y = mat->position.y;
-		const int check_side_cells = fast_liquid_spread;
-		const int check_down_cells = int(mat->velocity.y + 0.5);
 
 		if(mat->state == BURNING)
 		{
@@ -564,7 +586,9 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 		}
 		if(material_props[mat->material]->property & Properties::PHYSICS)
 		{
-			vector2 update_pos = element_updater.pos_update(&mat->position, &mat->velocity, nullptr);
+			Material* hit_mat = nullptr;
+			vector2 update_pos = element_updater.pos_update(&mat->position, &mat->velocity, &hit_mat);
+
 			if(update_pos.x != -1)
 			{
 				min_x = std::min(mat_x, min_x);
@@ -578,6 +602,16 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 
 				max_x = std::max(update_pos.x, max_x);
 				max_y = std::max(update_pos.y, max_y);
+				is_dirty = 1;
+			}
+			else if(mat->phys_state != RESTING)
+			{
+				min_x = std::min(mat_x, min_x);
+				min_y = std::min(mat_y, min_y);
+
+				max_x = std::max(mat_x, max_x);
+				max_y = std::max(mat_y, max_y);
+
 				is_dirty = 1;
 			}
 		}
@@ -602,9 +636,15 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 		vector2 upper_rect {min_x, min_y};
 		vector2 lower_rect {max_x, max_y};
 		modify_rect(chunk, &upper_rect, &lower_rect); 
+		chunk->asleep = 0;
 	}
 	else{
+		std::cout << "Chunk " << print_pos(chunk->coords.x, chunk->coords.y) << " is asleep." << std::endl;
 		chunk->asleep = 1;
+		chunk->d_upper.x = -1;
+		chunk->d_upper.y = -1;
+		chunk->d_lower.x = -1;
+		chunk->d_lower.y = -1;
 	}
 }
 void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
@@ -617,13 +657,10 @@ void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 	}
 
 	make_dirty_rect(chunk);
-	if(chunk->asleep == 0)
-	{
-		wake_up_neighbor_chunks(chunk);
-	}
 
-	if(chunk->d_upper.x == INT_MAX)
+	if(chunk->d_upper.x == -1)
 	{
+		chunk->asleep = 1;
 		return;
 	}
 
@@ -748,52 +785,6 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material)
 			}
 		}
 	}
-}
-
-void ChunkHandler::wake_up_neighbor_chunks(Chunk* chunk)
-{
-	auto up = chunks.find({chunk->coords.x, chunk->coords.y - 1});
-	auto down = chunks.find({chunk->coords.x, chunk->coords.y + 1});
-	auto left = chunks.find({chunk->coords.x - 1, chunk->coords.y});
-	auto right = chunks.find({chunk->coords.x + 1, chunk->coords.y});
-	auto up_left = chunks.find({chunk->coords.x - 1, chunk->coords.y - 1});
-	auto up_right = chunks.find({chunk->coords.x + 1, chunk->coords.y - 1});
-	auto down_left = chunks.find({chunk->coords.x - 1, chunk->coords.y + 1});
-	auto down_right = chunks.find({chunk->coords.x + 1, chunk->coords.y + 1});
-
-	if(up != chunks.end())
-	{
-		up->second->asleep = 0;
-	}
-	if(down != chunks.end())
-	{
-		down->second->asleep = 0;
-	}
-	if(left != chunks.end())
-	{
-		left->second->asleep = 0;
-	}
-	if(right != chunks.end())
-	{
-		right->second->asleep = 0;
-	}
-	if(up_left != chunks.end())
-	{
-		up_left->second->asleep = 0;
-	}
-	if(up_right != chunks.end())
-	{
-		up_right->second->asleep = 0;
-	}
-	if(down_left != chunks.end())
-	{
-		down_left->second->asleep = 0;
-	}
-	if(down_right != chunks.end())
-	{
-		down_right->second->asleep = 0;
-	}
-
 }
 
 void ChunkHandler::commit_changes()

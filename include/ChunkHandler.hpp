@@ -7,6 +7,7 @@
 #include <PoolArena.hpp>
 #include <Material.hpp>
 #include <unordered_map>
+#include <unordered_set>
 #include <array>
 #include <vector>
 #include <random>
@@ -59,6 +60,8 @@ public:
 	std::vector<Chunk*> iter_chunks;
 	std::vector<MaterialProps*> material_props;
 
+	std::unordered_set<Chunk*> set_asleep_already;
+
 	std::unordered_map<Material*, Animation> animation_list;
 	std::unordered_map<vector2, Chunk*, vector_hash> chunks;
 
@@ -90,6 +93,7 @@ public:
 	bool in_anim_list(Material* material);
 	bool can_react(Material* m1, Material* m2);
 
+	void debug_mat(Material* mat);
 	void set_material_properties(Material* material, MatType type, vector2* pos);
 	void destroy_material(Material* material);
 	void make_dirty_rect(Chunk* chunk);
@@ -104,7 +108,15 @@ public:
 	void remove_from_anim_list(Material* material);
 	void wake_up_neighbor_chunks(Chunk* chunk);
 	void init_material_props();
+	
 
+	inline void wake_up_materials(Chunk* chunk)
+	{
+		for(Material* mat: chunk->update_list)
+		{
+			mat->phys_state = FREE_FALLING;
+		}
+	};
 	inline Chunk* get_chunk(int x, int y){
 		vector2 chunk_coords {x/chunk_width, y/chunk_height};
 		if(chunk_coords.x >= x_chunks || chunk_coords.x < 0 || chunk_coords.y >= y_chunks || chunk_coords.y < 0) return nullptr;

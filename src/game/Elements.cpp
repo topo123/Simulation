@@ -5,6 +5,11 @@
 #include <random>
 #include <string>
 
+int down_collision_rest = 0;
+int from_sliding_rest = 0;
+int world_collision_rest = 0;
+int natural_rest = 0;
+
 std::string Elements::print_vel(float x, float y)
 {
 	return "(" + std::to_string(x) + ", " + std::to_string(y) + ")";
@@ -14,7 +19,7 @@ std::string Elements::print_vel(float x, float y)
 void Elements::update_sand(ELEMENT_UPDATE_ARGS)
 {
 	//Try to move
-	vector2 updated_pos = solid_physics_update(material, dT, 0.8f, 2.0f);
+	vector2 updated_pos = solid_physics_update(material, dT, 0.3f, 0.2f);
 	if(updated_pos.x != -1)
 	{
 		handler->move_list.push_back({material->position, updated_pos});
@@ -67,7 +72,13 @@ void Elements::update_smoke(ELEMENT_UPDATE_ARGS)
 
 void Elements::update_water(ELEMENT_UPDATE_ARGS)
 {
+	vector2 updated_pos = fluid_physics_update(material, dT, 6, 0.45);
 
+	if(updated_pos.x != -1)
+	{
+		handler->move_list.push_back({material->position, updated_pos});
+		return;
+	}
 }
 
 void Elements::update_wood(ELEMENT_UPDATE_ARGS)
@@ -580,7 +591,8 @@ void Elements::update_flammable_gas(ELEMENT_UPDATE_ARGS)
 	}
 }
 
-vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance, float friction_constant)
+
+vector2 Elements::fluid_physics_update(ELEMENT_UPDATE_ARGS, int fluid_spread, float air_resistance)
 {
 	vector2 grid_vel;
 	round_velocity(&material->velocity, &grid_vel);
@@ -589,7 +601,6 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 	vector2 updated_pos = pos_update(&material->position, &material->velocity, &colliding_material);
 	vector2 colliding_mat_pos = colliding_material? colliding_material->position: (vector2){-1, -1};
 	vector2 mat_pos = material->position;
-	//updated_pos = updated_pos.x == -1? mat_pos: updated_pos;
 
 	//Direction collision occurs
 	bool collision_below;
@@ -668,37 +679,37 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 		if(grounded && !left_material && !right_material && falling_down)
 		{
 			material->phys_state = SLIDING;
-			material->velocity.x = prob_gen(0.5f)? material->velocity.y/10.0f: -material->velocity.y/10.0f;
+			material->velocity.x = prob_gen(0.5f)? fluid_spread: -fluid_spread;
 			material->velocity.y = 1.0f;
 		}
 		else if(grounded && !left_material && falling_down)
 		{
 			material->phys_state = SLIDING;
-			material->velocity.x = -material->velocity.y/10.0f;
+			material->velocity.x = -fluid_spread;
 			material->velocity.y = 1.0f;
 		}
 		else if(grounded && !right_material && falling_down)
 		{
 			material->phys_state = SLIDING;
-			material->velocity.x = material->velocity.y/10.0f;
+			material->velocity.x = fluid_spread;
 			material->velocity.y = 1.0f;
 		}
 		else if(grounded && !right_material && falling_diag_right)
 		{
 			material->phys_state = SLIDING;
-			material->velocity.x += material->velocity.y/10.0f;
+			material->velocity.x = fluid_spread;
 			material->velocity.y = 1.0f;
 		}
 		else if(grounded && !left_material && falling_diag_left)
 		{
 			material->phys_state = SLIDING;
-			material->velocity.x -= material->velocity.y/10.0f;
+			material->velocity.x = -fluid_spread;
 			material->velocity.y = 1.0f;
 		}
 		else if(blocked)
 		{
 			material->phys_state = RESTING;
-			material->velocity.x = 0;
+			material->velocity.x = prob_gen(0.5f)? fluid_spread: -fluid_spread;
 			material->velocity.y = 1.0f;
 		}
 		
@@ -723,11 +734,12 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 		{
 			updated_pos.x = colliding_mat_pos.x;
 			updated_pos.y = colliding_mat_pos.y - 1;
+			material->velocity.x = -fluid_spread;
 		}
 		else if(blocked)
 		{
 			material->velocity.y = 1.0f;
-			material->velocity.x = 0;
+			material->velocity.x = fluid_spread;
 			material->phys_state = RESTING;
 		}
 		round_velocity(&material->velocity, &grid_vel);
@@ -750,35 +762,29 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 		{
 			updated_pos.x = colliding_mat_pos.x;
 			updated_pos.y = colliding_mat_pos.y - 1;
+			material->velocity.x = fluid_spread;
 		}
 		else if(blocked)
 		{
 			material->velocity.y = 1.0f;
-			material->velocity.x = 0;
-			material->phys_state = RESTING;
+			material->velocity.x = -fluid_spread;
+			material->phys_state = SLIDING;
 		}
 		round_velocity(&material->velocity, &grid_vel);
 	}
-	else if(collision_left || collision_right)
+	else if(collision_left)
 	{
-		material->velocity.x = 0;
+		Material* right_material = handler->in_world(updated_pos.x + 1, updated_pos.y)? handler->get_material(updated_pos.x + 1, updated_pos.y): dummy_material;
+		material->velocity.x = fluid_spread;
+		material->phys_state = !right_material? SLIDING: RESTING;
 		round_velocity(&material->velocity, &grid_vel);
 	}
-
-
-	if(material->phys_state == FREE_FALLING)
+	else if(collision_right)
 	{
 		Material* left_material = handler->in_world(updated_pos.x - 1, updated_pos.y)? handler->get_material(updated_pos.x - 1, updated_pos.y): dummy_material;
-		Material* right_material = handler->in_world(updated_pos.x + 1, updated_pos.y)? handler->get_material(updated_pos.x + 1, updated_pos.y): dummy_material;
-
-		if(left_material && left_material != dummy_material && left_material->phys_state == RESTING && prob_gen(inertia_chance))
-		{
-			left_material->phys_state = FREE_FALLING;
-		}
-		if(right_material && right_material != dummy_material && right_material->phys_state == RESTING && prob_gen(inertia_chance))
-		{
-			right_material->phys_state = FREE_FALLING;
-		}
+		material->velocity.x = -fluid_spread;
+		material->phys_state = !left_material? SLIDING: RESTING;
+		round_velocity(&material->velocity, &grid_vel);
 	}
 
 
@@ -787,22 +793,26 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 		material->velocity.y += g_force * dT;
 	}
 
-	if((material->phys_state == SLIDING || material->phys_state == FREE_FALLING) && grid_vel.x != 0)
+	if(material->phys_state == FREE_FALLING && grid_vel.x != 0)
 	{
-		float new_x = grid_vel.x > 0? material->velocity.x - friction_constant * g_force: material->velocity.x + friction_constant * g_force;
+		float new_x = grid_vel.x > 0? material->velocity.x - air_resistance: material->velocity.x + air_resistance;
 		if((float)grid_vel.x * new_x < 0)
 		{
 			material->velocity.x = 0;
-			material->phys_state = RESTING;
 		}
 		else if(within_eps(new_x, 0, 0.5f) || within_eps(new_x, 0, -0.5f))
 		{
 			material->velocity.x = 0;
-			material->phys_state = RESTING;
 		}
 		else{
 			material->velocity.x = new_x;
 		}
+	}
+
+
+	if(material->phys_state == SLIDING && std::abs(grid_vel.x) > fluid_spread)
+	{
+		material->velocity.x = grid_vel.x > 0? fluid_spread: -fluid_spread;
 	}
 
 
@@ -814,23 +824,47 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 		round_velocity(&material->velocity, &grid_vel);
 	}
 
+	if(material->phys_state == RESTING || material->phys_state == FREE_FALLING)
+	{
+		Material* down_material = handler->in_world(updated_pos.x, updated_pos.y + 1)? handler->get_material(updated_pos.x, updated_pos.y + 1): dummy_material;
+		Material* diag_left_material = handler->in_world(updated_pos.x - 1, updated_pos.y + 1)? handler->get_material(updated_pos.x - 1, updated_pos.y + 1): dummy_material;
+		Material* diag_right_material = handler->in_world(updated_pos.x + 1, updated_pos.y + 1)? handler->get_material(updated_pos.x + 1, updated_pos.y + 1): dummy_material;
+
+		if(down_material && down_material != dummy_material && diag_left_material && diag_left_material != dummy_material && diag_right_material && diag_right_material != dummy_material)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = prob_gen(0.5f)? fluid_spread: -fluid_spread;
+		}
+		else if(down_material && down_material != dummy_material && diag_left_material && diag_left_material != dummy_material )
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = -fluid_spread;
+		}
+		else if(down_material && down_material != dummy_material && diag_right_material && diag_right_material != dummy_material )
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = fluid_spread;
+		}
+
+	}
+
+
+
 	if(updated_pos.x == world_width - 1 && grid_vel.x > 0)
 	{
-		material->velocity.x = 0;
-		material->phys_state = RESTING;
+		material->velocity.x = -fluid_spread;
 		round_velocity(&material->velocity, &grid_vel);
 	}
 	else if(updated_pos.x == 0 && grid_vel.x < 0)
 	{
-		material->velocity.x = 0;
-		material->phys_state = RESTING;
+		material->velocity.x = fluid_spread;
 		round_velocity(&material->velocity, &grid_vel);
 	}
 
 	if(updated_pos.x == world_height - 1 && grid_vel.y > 0)
 	{
 		material->velocity.y = 1.0f;
-		material->phys_state = RESTING;
+		material->frames_rest ++;
 		round_velocity(&material->velocity, &grid_vel);
 	}
 
@@ -839,6 +873,11 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 	{
 		material->velocity.x = 0;
 		material->velocity.y = 1.0f;
+		material->frames_rest ++;
+	}
+
+	if(material->frames_rest >= 10)
+	{
 		material->phys_state = RESTING;
 	}
 
@@ -846,6 +885,332 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 	clamp(material->velocity.x, 0.01f, 0);
 	clamp(material->velocity.y, 0.01f, 0);
 
+
+	return updated_pos;
+}
+
+vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance, float friction_constant)
+{
+	vector2 grid_vel;
+	round_velocity(&material->velocity, &grid_vel);
+
+	Material debug_material = *material;
+
+
+	Material* colliding_material = nullptr;
+	vector2 updated_pos = pos_update(&material->position, &material->velocity, &colliding_material);
+	vector2 colliding_mat_pos = colliding_material? colliding_material->position: (vector2){-1, -1};
+	vector2 mat_pos = material->position;
+	//updated_pos = updated_pos.x == -1? mat_pos: updated_pos;
+	//
+
+	//Direction collision occurs
+	bool collision_below;
+	bool collision_diag_right;
+	bool collision_diag_left;
+	bool collision_left;
+	bool collision_right;
+
+	bool debug = material->phys_state == SLIDING || material->phys_state == FREE_FALLING;
+
+	if(debug)
+	{
+		std::cout << "____INITIAL MATERIAL____\n";
+		 handler->debug_mat(material);
+	}
+
+
+	if(updated_pos.x != -1)
+	{
+		collision_below = colliding_material && colliding_mat_pos.x == updated_pos.x && colliding_mat_pos.y > updated_pos.y;
+		collision_diag_right = colliding_material && colliding_mat_pos.x > updated_pos.x && colliding_mat_pos.y > updated_pos.y;
+		collision_diag_left = colliding_material && colliding_mat_pos.x < updated_pos.x && colliding_mat_pos.y > updated_pos.y;
+		collision_left = colliding_material && colliding_mat_pos.x < updated_pos.x && colliding_mat_pos.y == updated_pos.y;
+		collision_right = colliding_material && colliding_mat_pos.x > updated_pos.x && colliding_mat_pos.y == updated_pos.y;
+	}
+	else
+	{
+		collision_below = colliding_material && colliding_mat_pos.x == mat_pos.x && colliding_mat_pos.y > mat_pos.y;
+		collision_diag_right = colliding_material && colliding_mat_pos.x > mat_pos.x && colliding_mat_pos.y > mat_pos.y;
+		collision_diag_left = colliding_material && colliding_mat_pos.x < mat_pos.x && colliding_mat_pos.y > mat_pos.y;
+		collision_left = colliding_material && colliding_mat_pos.x < mat_pos.x && colliding_mat_pos.y == mat_pos.y;
+		collision_right = colliding_material && colliding_mat_pos.x > mat_pos.x && colliding_mat_pos.y == mat_pos.y;
+	}
+
+	//Direction particle is falling
+	bool falling_down = grid_vel.x == 0 && grid_vel.y > 0;
+	bool falling_diag_left = grid_vel.x < 0 && grid_vel.y > 0;
+	bool falling_diag_right = grid_vel.x > 0 && grid_vel.y > 0;
+
+	assert((collision_below ^ collision_diag_right ^ collision_diag_left ^ collision_left ^ collision_right) ^ 
+				(!collision_below && !collision_diag_right && !collision_diag_left && !collision_left && !collision_right));
+
+
+	if(collision_below && material->phys_state != RESTING)
+	{
+		Material* left_colliding_material = handler->in_world(colliding_mat_pos.x - 1, colliding_mat_pos.y)? handler->get_material(colliding_mat_pos.x - 1, colliding_mat_pos.y): dummy_material; 
+		Material* right_colliding_material = handler->in_world(colliding_mat_pos.x + 1, colliding_mat_pos.y)? handler->get_material(colliding_mat_pos.x + 1, colliding_mat_pos.y): dummy_material;
+		Material* left_material = handler->in_world(colliding_mat_pos.x - 1, colliding_mat_pos.y - 1)? handler->get_material(colliding_mat_pos.x - 1, colliding_mat_pos.y - 1): dummy_material;
+		Material* right_material = handler->in_world(colliding_mat_pos.x + 1, colliding_mat_pos.y - 1)? handler->get_material(colliding_mat_pos.x + 1, colliding_mat_pos.y - 1): dummy_material;
+
+		bool grounded = left_colliding_material && left_colliding_material != dummy_material && right_colliding_material && right_colliding_material != dummy_material;
+		bool blocked = left_material && left_material != dummy_material && right_material && right_material != dummy_material;
+
+		if(!left_colliding_material && !right_colliding_material && falling_down)
+		{
+			updated_pos.x = prob_gen(0.5f)? colliding_mat_pos.x + 1: colliding_mat_pos.x - 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+		else if(!left_colliding_material && falling_down)
+		{
+			updated_pos.x = colliding_mat_pos.x - 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+		else if(!right_colliding_material && falling_down)
+		{
+			updated_pos.x = colliding_mat_pos.x + 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+
+		if(!right_colliding_material && falling_diag_right)
+		{
+			updated_pos.x = colliding_mat_pos.x + 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+		else if(!left_colliding_material && falling_diag_left)
+		{
+			updated_pos.x = colliding_mat_pos.x - 1;
+			updated_pos.y = colliding_mat_pos.y;
+		}
+
+		if(grounded && !left_material && !right_material && falling_down)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = prob_gen(0.5f)? material->velocity.y/10.0f: -material->velocity.y/10.0f;
+			material->velocity.y = 0;
+		}
+		else if(grounded && !left_material && falling_down)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = -material->velocity.y/2.0f;
+			material->velocity.y = 0;
+		}
+		else if(grounded && !right_material && falling_down)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x = material->velocity.y/2.0f;
+			material->velocity.y = 0;
+		}
+		else if(grounded && !right_material && falling_diag_right)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x += material->velocity.y/2.0f;
+			material->velocity.y = 0;
+		}
+		else if(grounded && !left_material && falling_diag_left)
+		{
+			material->phys_state = SLIDING;
+			material->velocity.x -= material->velocity.y/2.0f;
+			material->velocity.y = 0;
+		}
+		else if(blocked && grounded)
+		{
+			material->frames_rest ++;
+			material->velocity.x = 0;
+			material->velocity.y = 1.0f;
+		}
+
+		round_velocity(&material->velocity, &grid_vel);
+	}
+	else if(collision_diag_left && material->phys_state != RESTING)
+	{
+		assert(falling_diag_left);
+
+		Material* right_colliding_material = handler->in_world(colliding_mat_pos.x + 1, colliding_mat_pos.y)? handler->get_material(colliding_mat_pos.x + 1, colliding_mat_pos.y): dummy_material;
+		Material* left_material = handler->in_world(colliding_mat_pos.x, colliding_mat_pos.y - 1)? handler->get_material(colliding_mat_pos.x, colliding_mat_pos.y - 1): dummy_material;
+		bool blocked = right_colliding_material && right_colliding_material != dummy_material && left_material && left_material != dummy_material;
+
+		if(!right_colliding_material)
+		{
+			updated_pos.x = colliding_mat_pos.x + 1;
+			updated_pos.y = colliding_mat_pos.y;
+			material->velocity.x = 0;
+		}
+		else if(!left_material)
+		{
+			updated_pos.x = colliding_mat_pos.x;
+			updated_pos.y = colliding_mat_pos.y - 1;
+		}
+		else if(blocked)
+		{
+			material->velocity.y = 1.0f;
+			material->velocity.x = 0;
+		}
+		round_velocity(&material->velocity, &grid_vel);
+	}
+	else if(collision_diag_right && material->phys_state != RESTING)
+	{
+		assert(falling_diag_right);
+
+		Material* left_colliding_material = handler->in_world(colliding_mat_pos.x - 1, colliding_mat_pos.y)? handler->get_material(colliding_mat_pos.x - 1, colliding_mat_pos.y): dummy_material;
+		Material* right_material = handler->in_world(colliding_mat_pos.x, colliding_mat_pos.y - 1)? handler->get_material(colliding_mat_pos.x, colliding_mat_pos.y - 1): dummy_material;
+		bool blocked = left_colliding_material && left_colliding_material != dummy_material && right_material && right_material != dummy_material;
+
+		if(!left_colliding_material)
+		{
+			updated_pos.x = colliding_mat_pos.x - 1;
+			updated_pos.y = colliding_mat_pos.y;
+			material->velocity.x = 0;
+		}
+		else if(!right_material)
+		{
+			updated_pos.x = colliding_mat_pos.x;
+			updated_pos.y = colliding_mat_pos.y - 1;
+		}
+		else if(blocked)
+		{
+			material->velocity.y = 1.0f;
+			material->velocity.x = 0;
+		}
+		round_velocity(&material->velocity, &grid_vel);
+	}
+	else if((collision_left || collision_right) && material->phys_state != RESTING)
+	{
+		material->velocity.x = 0;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+
+
+	if(material->phys_state == FREE_FALLING && !collision_below)
+	{
+		material->velocity.y += g_force * dT;
+	}
+
+	if(grid_vel.x != 0)
+	{
+		float vel_x = grid_vel.x > 0? material->velocity.x - friction_constant: material->velocity.x + friction_constant;
+		material->velocity.x = vel_x * material->velocity.x < 0? 0: vel_x;
+
+		if(within_eps(material->velocity.x, 0.5f, 0.1f) || within_eps(material->velocity.x, -0.5f, 0.1f))
+		{
+			material->velocity.x = 0;
+			material->velocity.y = 1.0f;
+		}
+		
+		material->frames_rest = material->phys_state == SLIDING && material->velocity.x == 0? material->frames_rest + 1:material->frames_rest;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+
+
+	if(material->phys_state == SLIDING && grid_vel.x == 0)
+	{
+		material->velocity.x = 0;
+		material->velocity.y = 1.0f;
+		material->frames_rest ++;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+
+	if((updated_pos.x == world_width - 1 || mat_pos.x == world_width - 1) && grid_vel.x > 0 && material->phys_state == SLIDING)
+	{
+		material->velocity.x = 0;
+		material->velocity.y = 1.0f;
+		material->frames_rest ++;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+	else if((updated_pos.x == 0 || mat_pos.x == 0) && grid_vel.x < 0 && material->phys_state == SLIDING)
+	{
+		material->velocity.x = 0;
+		material->velocity.y = 1.0f;
+		material->frames_rest ++;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+
+	if((updated_pos.y == world_height - 1  || mat_pos.y == world_height - 1) && grid_vel.y > 0 && material->phys_state != RESTING)
+	{
+		material->velocity.y = 0;
+		material->velocity.x = material->velocity.x > 0? material->velocity.x + material->velocity.y/2.0f: material->velocity.x - material->velocity.y/2.0f;
+		material->phys_state = SLIDING;
+		round_velocity(&material->velocity, &grid_vel);
+	}
+	if(grid_vel.x == 0 && grid_vel.y == 0)
+	{
+		material->velocity.x = 0;
+		material->velocity.y = 1.0f;
+		material->frames_rest ++;
+	}
+
+	if((material->phys_state == RESTING || material->phys_state == SLIDING) && updated_pos.x == -1)
+	{
+		Material* down_material = handler->in_world(mat_pos.x, mat_pos.y + 1)? handler->get_material(mat_pos.x, mat_pos.y + 1): dummy_material;
+		Material* diag_right_material = handler->in_world(mat_pos.x + 1, mat_pos.y + 1)? handler->get_material(mat_pos.x + 1, mat_pos.y + 1): dummy_material;
+		Material* diag_left_material  = handler->in_world(mat_pos.x - 1, mat_pos.y + 1)? handler->get_material(mat_pos.x - 1, mat_pos.y + 1): dummy_material;
+
+		if(!down_material || !diag_right_material || !diag_left_material)
+		{
+			material->frames_rest = 0;
+			material->velocity.y = 1.0f;
+			material->phys_state = FREE_FALLING;
+		}
+	}
+	else if((material->phys_state == RESTING  || material->phys_state == SLIDING) && updated_pos.x != -1)
+	{
+		Material* down_material = handler->in_world(updated_pos.x, updated_pos.y + 1)? handler->get_material(updated_pos.x, updated_pos.y + 1): dummy_material;
+		Material* diag_right_material = handler->in_world(updated_pos.x + 1, updated_pos.y + 1)? handler->get_material(updated_pos.x + 1, updated_pos.y + 1): dummy_material;
+		Material* diag_left_material  = handler->in_world(updated_pos.x - 1, updated_pos.y + 1)? handler->get_material(updated_pos.x - 1, updated_pos.y + 1): dummy_material;
+
+		if(!down_material || !diag_right_material || !diag_left_material)
+		{
+			material->velocity.y = 1.0f;
+			material->frames_rest = 0;
+			material->phys_state = FREE_FALLING;
+		}
+	}
+
+	if((material->phys_state == FREE_FALLING || material->phys_state == SLIDING) && updated_pos.x != -1){
+		Material* down_material = handler->in_world(updated_pos.x, updated_pos.y + 1)? handler->get_material(updated_pos.x, updated_pos.y + 1): dummy_material;
+		Material* diag_right_material = handler->in_world(updated_pos.x + 1, updated_pos.y + 1)? handler->get_material(updated_pos.x + 1, updated_pos.y + 1): dummy_material;
+		Material* diag_left_material  = handler->in_world(updated_pos.x - 1, updated_pos.y + 1)? handler->get_material(updated_pos.x - 1, updated_pos.y + 1): dummy_material;
+
+		bool grounded = down_material && down_material != dummy_material && diag_right_material != dummy_material && diag_left_material && diag_left_material != dummy_material;
+
+		if(grounded || updated_pos.y == world_height - 1)
+		{
+			material->frames_rest ++;
+		}
+	}
+	else if((material->phys_state == FREE_FALLING || material->phys_state == SLIDING) && updated_pos.x == -1)
+	{
+		Material* down_material = handler->in_world(mat_pos.x, mat_pos.y + 1)? handler->get_material(mat_pos.x, mat_pos.y + 1): dummy_material;
+		Material* diag_right_material = handler->in_world(mat_pos.x + 1, mat_pos.y + 1)? handler->get_material(mat_pos.x + 1, mat_pos.y + 1): dummy_material;
+		Material* diag_left_material  = handler->in_world(mat_pos.x - 1, mat_pos.y + 1)? handler->get_material(mat_pos.x - 1, mat_pos.y + 1): dummy_material;
+
+		bool grounded = down_material && down_material != dummy_material && diag_right_material != dummy_material && diag_left_material && diag_left_material != dummy_material;
+
+		if(grounded || mat_pos.y == world_height - 1)
+		{
+			material->frames_rest ++;
+		}
+	}
+
+	//Last check to ensure that state is set to resting if cannot move
+
+
+	if(material->frames_rest >= 60)
+	{
+		material->phys_state = RESTING;
+		material->velocity.x = 0;
+		material->velocity.y = 1.0f;
+		material->frames_rest = 0;
+	}
+
+	clamp(material->velocity.x, 0.01f, 0);
+	clamp(material->velocity.y, 0.01f, 0);
+
+	if(debug)
+	{
+		std::cout << "____ENDING MATERIAL____\n";
+		handler->debug_mat(material);
+	}
 
 	return updated_pos;
 }
@@ -903,7 +1268,7 @@ vector2 Elements::pos_update(vector2* pos, fvector2* velocity, Material** collid
 		}
 
 
-		
+
 
 		return {pos->x, y_offset > 0? pos->y + offset - 1: pos->y - offset + 1};
 	}
@@ -964,5 +1329,4 @@ void Elements::init(ChunkHandler* handler, int wW, int wH){
 	this->handler = handler;
 	world_width = wW;
 	world_height = wH;
-	gen.seed(rd());
 }

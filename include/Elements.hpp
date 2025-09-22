@@ -1,4 +1,5 @@
 #ifndef ELEMENTS_H
+
 #define ELEMENTS_H
 
 #include "Material.hpp"
@@ -43,7 +44,7 @@ public:
 
 	vector2 pos_update(vector2* pos, fvector2* velocity, Material** colliding_material);
 	vector2 solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance, float friction_constant);
-	vector2 liquid_physics_update(ELEMENT_UPDATE_ARGS);
+	vector2 fluid_physics_update(ELEMENT_UPDATE_ARGS, int fluid_spread, float air_resistance);
 	vector2 gas_physics_update(ELEMENT_UPDATE_ARGS);
 
 	void update_sand(ELEMENT_UPDATE_ARGS);

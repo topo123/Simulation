@@ -154,6 +154,7 @@ struct Material
 	MatType material = MatType::NONE;
 	State state = State::NORMAL;
 	PhysicsState phys_state = PhysicsState::FREE_FALLING;
+	unsigned int frames_rest;
 	float tex_offset;
 	int health;
 	int chunk_index;
