@@ -106,7 +106,7 @@ void ChunkHandler::init_material_props()
 		SOLID
 	};
 
-	*material_props[ACID] = {static_cast<Properties>(DOWN_SIDE + DOWN + SIDE), 
+	*material_props[ACID] = {static_cast<Properties>(PHYSICS), 
 		static_cast<ReactionProperties>(DISPLACIBLE),
 		static_cast<ReactionDirection>(AROUND),
 		200,
@@ -123,7 +123,7 @@ void ChunkHandler::init_material_props()
 		TODO: Implement an NITRO material that actually works
 	*/ 
 
-	*material_props[OIL] = {static_cast<Properties>(DOWN_SIDE + DOWN + SIDE), 
+	*material_props[OIL] = {static_cast<Properties>(PHYSICS), 
 		static_cast<ReactionProperties>(FLAMMABLE + DISPLACIBLE + ACID_DESTROY),
 		static_cast<ReactionDirection>(AROUND),
 		500,

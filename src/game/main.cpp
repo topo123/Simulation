@@ -15,7 +15,7 @@ bool mousePressed = false;
 bool save_world = false;
 bool erase = false;
 MatType material_type = MatType::SAND;
-const vector2 draw_size {11, 11};
+vector2 draw_size {11, 11};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -71,6 +71,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	else if(key == GLFW_KEY_S && action == GLFW_PRESS)
 	{
 		save_world = true;
+	}
+	else if(key == GLFW_KEY_EQUAL)
+	{
+		draw_size.x += 2;
+		draw_size.y += 2;
+		std::cout << "Draw size is: " << draw_size.x << std::endl;
+	}
+	else if(key == GLFW_KEY_MINUS)
+	{
+		draw_size.x = draw_size.x - 2 <= 0? 1: draw_size.x - 2;
+		draw_size.y = draw_size.y - 2 <= 0? 1: draw_size.y - 2;
+		std::cout << "Draw size is: " << draw_size.x << std::endl;
 	}
 }
 
