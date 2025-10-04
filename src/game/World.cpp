@@ -8,14 +8,15 @@ void World::init_world(int cW, int cH, int wW, int wH, PoolArena* material_arena
 {
 	world_width = wW;
 	world_height = wH;
-	
+
 	arena = material_arena;
 	std::cout << "Initializing Render data\n";
 	render.initRenderData();
 	handler.init_chunk_handler(cW, cH, wW, wH, material_arena);
 }
 
-void World::create_materials(int center_x, int center_y, const vector2& draw_size, MatType type)
+
+void World::create_materials(const vector2& old_center, const vector2& new_center, const vector2& draw_size, const MatType type)
 {
 
 	if(draw_size.x % 2 == 0 || draw_size.y % 2 == 0)
@@ -23,63 +24,117 @@ void World::create_materials(int center_x, int center_y, const vector2& draw_siz
 		return;
 	}
 
-	if(center_x < 0 || center_x > world_width || center_y < 0 || center_y > world_height)
+	if(new_center.x < 0 || new_center.x > world_width || new_center.y < 0 || new_center.y > world_height)
 	{
 		return;
 	}
 
-	int num_cols = draw_size.x;
-	int num_rows = draw_size.y;
-
-	int half_x = draw_size.x/2;
-	int half_y = draw_size.y/2;
-
-	int lX = center_x - half_x;
-	int rX = center_x + half_x;
-	int tY = center_y - half_y;
-	int bY = center_y + half_y;
-
-	if(lX < 0)
-	{
-		num_cols += lX;
-		lX = 0;
-	}
-	if(rX > world_width)
-	{
-		num_cols -= rX - world_width;
-		rX = world_width - 1;
-	}
-	if(tY < 0)
-	{
-		num_rows += tY;
-		tY = 0;
-	}
-	if(bY > world_height)
-	{
-		num_rows -= bY - world_height;
-		bY = world_height - 1;
-	}
-
-	int prev_x = rX;
 
 	std::vector<Material*> materials;
-	if(type == FIRE){
-		materials.resize(num_rows * num_rows / 10, nullptr);
-		flame_brush(materials.size(), rX, bY, lX, tY, materials); 
-	}
-	else{
-		materials.resize(num_rows * num_cols, nullptr);
-		regular_brush(materials.size(), rX, bY, lX, type, materials);
+
+	vector2 center = old_center;
+
+	float delta_y = new_center.y - old_center.y;
+	float delta_x = new_center.x - old_center.x;
+
+	if(delta_y == 0 && delta_x == 0)
+	{
+		spawn_materials(center, draw_size, materials, type);
+		return;
 	}
 
-	handler.add_materials(materials); 
+	float slope;
+	float intercept;
+
+	bool horz = delta_x != 0 && delta_y == 0;
+	bool vert = delta_x == 0 && delta_y != 0;
+
+	while(horz)
+	{
+		spawn_materials(center, draw_size, materials, type);
+		center.x += draw_size.x;
+
+		if(center.x >= new_center.x && delta_x > 0)
+		{
+			spawn_materials(center, draw_size, materials, type);
+			return;
+		}
+		else if(center.x <= new_center.x && delta_x < 0)
+		{
+			spawn_materials(center, draw_size, materials, type);
+			return;
+		}
+	}
+
+	while(vert)
+	{
+		spawn_materials(center, draw_size, materials, type);
+		center.y += draw_size.y;
+
+		if(center.y >= new_center.y && delta_y > 0)
+		{
+			spawn_materials(center, draw_size, materials, type);
+			return;
+		}
+		else if(center.y <= new_center.y && delta_y < 0)
+		{
+			spawn_materials(center, draw_size, materials, type);
+			return;
+		}
+	}
+
+
+	bool should_terminate = false;
+
+	if(delta_y > delta_x)
+	{
+		slope = delta_x/delta_y;
+		intercept = (old_center.y/slope) - old_center.x;
+	}
+	else{
+		slope = delta_y/delta_x;
+		intercept = old_center.y - slope * old_center.x;
+	}
+
+
+	while(delta_y > delta_x && !should_terminate)
+	{
+		spawn_materials(center, draw_size, materials, type);
+
+		center.y = delta_y > 0? center.y + draw_size.y: center.y - draw_size.y;  
+		center.x = slope * center.y - intercept;
+
+		if((center.y > new_center.y && delta_y > 0) || (center.y < new_center.y && delta_y < 0))
+		{
+			center.y = new_center.y;
+			center.x = slope * center.y - intercept;
+			spawn_materials(center, draw_size, materials, type);
+			should_terminate = true;
+		}
+	}
+
+
+	while(delta_y < delta_x && !should_terminate)
+	{
+		spawn_materials(center, draw_size, materials, type);
+
+		center.x = delta_x > 0? center.x + draw_size.x: center.x - draw_size.x;
+		center.y = slope * center.x + intercept;
+
+		if((center.x > new_center.x && delta_x > 0) && (center.x < new_center.x && delta_x < 0))
+		{
+			center.x = new_center.x;
+			center.y = slope * center.x + intercept;
+			spawn_materials(center, draw_size, materials, type);
+			should_terminate = true;
+		}
+	}
 }
 
 void World::flame_brush(const int num_materials, int lower_x, int lower_y, int upper_x, int upper_y, std::vector<Material*>& materials)
 {
 	int counter = 0;
 	int flame_counter = 0;
-	int index = 0;
 	vector2 pos;
 	std::unordered_set<vector2, vector_hash> filled_pos;
 
@@ -89,10 +144,9 @@ void World::flame_brush(const int num_materials, int lower_x, int lower_y, int u
 		pos.y = rand() % (lower_y - upper_y) + upper_y;
 
 		if(rand() % 2 == 1 && filled_pos.find(pos) == filled_pos.end()){
-			materials[index] = static_cast<Material*>(allocate(arena));
-			handler.set_material_properties(materials[index], FIRE, &pos);
+			materials.push_back(static_cast<Material*>(allocate(arena)));
+			handler.set_material_properties(materials.back(), FIRE, &pos);
 			counter ++;
-			index ++;
 			flame_counter ++;
 			filled_pos.insert(pos);
 		}
@@ -102,26 +156,28 @@ void World::flame_brush(const int num_materials, int lower_x, int lower_y, int u
 
 void World::regular_brush(const int num_materials, int lower_x, int lower_y, int upper_x, MatType type, std::vector<Material*>& materials)
 {
-	int counter = 0;
 	int prev_x = lower_x;
 	vector2 pos;
+
 	for(size_t i = 0; i < num_materials; i ++)
 	{
-		materials[i] = static_cast<Material*>(allocate(arena));
 		pos.x = lower_x;
 		pos.y = lower_y;
 
-		handler.set_material_properties(materials[i], type, &pos);
+		if(!handler.get_material(pos.x, pos.y) && handler.in_world(pos.x, pos.y))
+		{
+			materials.push_back(static_cast<Material*>(allocate(arena)));
+			handler.set_material_properties(materials.back(), type, &pos);
+		}
+
 		lower_x --;
 
 		if(lower_x == upper_x - 1)
 		{
-			counter ++;
 			lower_x = prev_x;
 			lower_y --;
 		}
 	}
-
 
 }
 

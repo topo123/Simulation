@@ -143,6 +143,8 @@ void ChunkHandler::init_material_props()
 
 void ChunkHandler::set_material_properties(Material* material, MatType type, vector2* pos)
 {
+	if(!material) return;
+
 	material->state = NORMAL;
 	material->frames_rest = 0;
 	material->phys_state = FREE_FALLING;
@@ -614,6 +616,30 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 
 				is_dirty = 1;
 			}
+			else if(material_props[mat->material]->mat_state == LIQUID && mat->phys_state == RESTING)
+			{
+				Material* left =  in_world(mat_x - 1, mat_y)? get_material(mat_x - 1, mat_y): element_updater.dummy_material;
+				Material* right = in_world(mat_x + 1, mat_y)? get_material(mat_x + 1, mat_y): element_updater.dummy_material;
+
+				if(!left)
+				{
+					min_x = std::min(min_x, mat_x - 1);
+					min_y = std::min(min_y, mat_y);
+
+					max_x = std::max(max_x, mat_x);
+					max_y = std::max(max_y, mat_y);
+					is_dirty = 1;
+				}
+				if(!right)
+				{
+					min_x = std::min(min_x, mat_x);
+					min_y = std::min(min_y, mat_y);
+
+					max_x = std::max(max_x, mat_x + 1);
+					max_y = std::max(max_y, mat_y);
+					is_dirty = 1;
+				}
+			}
 		}
 		else
 		{
@@ -777,7 +803,8 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material)
 			chunks[chunk_pos]->num_materials ++;
 		}
 		else
-	{
+		{
+			assert(false);
 			int success = deallocate(material_arena, mat);
 			if(success == -1)
 			{

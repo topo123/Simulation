@@ -8,14 +8,16 @@
 #include <World.hpp>
 
 
-double mouse_x, mouse_y;
 bool paused = false;
 bool debug_mode = true;
 bool mousePressed = false;
 bool save_world = false;
 bool erase = false;
 MatType material_type = MatType::SAND;
+
 vector2 draw_size {11, 11};
+vector2 old_mouse_pos {-1, -1};
+vector2 curr_mouse_pos {-1, -1};
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -88,8 +90,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos)
 {
-	mouse_x = xPos;
-	mouse_y = yPos;
+	if(mousePressed)
+	{
+		old_mouse_pos.x = curr_mouse_pos.x;
+		old_mouse_pos.y = curr_mouse_pos.y;
+	}
+	else{
+		old_mouse_pos.x = xPos;
+		old_mouse_pos.y = yPos;
+
+	}
+
+	curr_mouse_pos.x = xPos;
+	curr_mouse_pos.y = yPos;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -209,11 +222,12 @@ void game_loop(std::string name)
 	{
 		if(mousePressed)
 		{
-			world.create_materials(mouse_x, mouse_y, draw_size, material_type);
+			world.create_materials(old_mouse_pos, curr_mouse_pos, draw_size, material_type);
+			std::cout << "Mouse pressed\n";
 		}
 		if(erase)
 		{
-			world.delete_materials(mouse_x, mouse_y, 35, 35);
+			world.delete_materials(curr_mouse_pos.x, curr_mouse_pos.y, 35, 35);
 		}
 		if(save_world)
 		{
@@ -249,6 +263,7 @@ int main(int argc, char* argv[])
 		game_loop(std::string(argv[1]));
 	}
 	else{
+
 		game_loop("");
 	}
 	glfwTerminate();
