@@ -30,22 +30,23 @@ include_directories("/usr/include/x86_64-linux-gnu")
 
 add_library(glad ${CMAKE_CURRENT_SOURCE_DIR}/glad/src/glad.c)
 add_library(arena ${CMAKE_CURRENT_SOURCE_DIR}/src/arenas/Arena.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/arenas/PoolArena.cpp)
-add_library(world ${CMAKE_CURRENT_SOURCE_DIR}/src/game/World.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/game/ChunkHandler.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/src/game/Elements.cpp)
+add_library(world ${CMAKE_CURRENT_SOURCE_DIR}/src/game/World.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/game/ChunkHandler.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/game/Elements.cpp)
 add_library(render ${CMAKE_CURRENT_SOURCE_DIR}/src/game/Renderer.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/shaders/shader_util.cpp)
-add_library(utilities ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities/SwapbackArray.cpp)
+add_library(input ${CMAKE_CURRENT_SOURCE_DIR}/src/game/InputHandler.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/arenas/PoolArena.cpp)
 
 
 target_include_directories(arena PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(render PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(world PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories(utilities PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+target_include_directories(input PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_link_libraries(input PRIVATE glad)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 
 add_executable(main ./src/game/main.cpp)
 
 target_include_directories(main PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(main PRIVATE world render arena utilities glad glfw)
+target_link_libraries(main PRIVATE world render input arena glad glfw)
 
 

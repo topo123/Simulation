@@ -99,7 +99,7 @@ public:
 	void make_dirty_rect(Chunk* chunk);
 	void modify_rect(Chunk* chunk, vector2* old_pos, vector2* new_pos);
 	void commit_changes();
-	void init_chunk_handler(int chunk_width, int chunk_height, int world_width, int world_height, PoolArena* arena);
+	void init_chunk_handler(unsigned int chunk_width, unsigned int chunk_height, int world_width, int world_height, PoolArena* arena);
 	void add_materials(const std::vector<Material*>& materials);
 	void update_chunk(Chunk* chunk, const float dT);
 	void draw_chunk_to_texture(Chunk* chunk, Renderer* render, bool debug_mode);

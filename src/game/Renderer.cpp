@@ -9,7 +9,7 @@
 #include <Shader.hpp>
 
 
-void Renderer::compile_shaders()
+void Renderer::compile_shaders(unsigned int world_width, unsigned int world_height)
 {
 	std::cout << "Initializing the arena\n";
 	arena = init_arena(1024 * 1024 * 1024);
@@ -57,7 +57,7 @@ void Renderer::compile_shaders()
 	std::cout << "Shaders deleted\n";
 
 	glUseProgram(writer_shader_program);
-	glm::mat4 proj = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f, -1.0f, 1.0f);
+	glm::mat4 proj = glm::ortho(0.0f, (float)world_width, (float)world_height, 0.0f, -1.0f, 1.0f);
 	int matrix = glGetUniformLocation(writer_shader_program, "projection");
 	assert(matrix != -1);
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(proj));
@@ -108,7 +108,7 @@ void Renderer::compile_shaders()
 	std::cout << "Freed the arean\n";
 }
 
-void Renderer::initRenderData()
+void Renderer::initRenderData(unsigned int world_width, unsigned int world_height)
 {
 	unsigned char tex_colors[] = {
 		246, 220, 189, 255, //sand color
@@ -148,7 +148,7 @@ void Renderer::initRenderData()
 	};
 
 
-	compile_shaders();
+	compile_shaders(world_width, world_height);
 	unsigned int VBO;
 	unsigned int EBO;
 	unsigned int write_vbo;
@@ -178,7 +178,7 @@ void Renderer::initRenderData()
 	glBindTexture(GL_TEXTURE_2D, write_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 800, 600, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, world_width, world_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, write_texture, 0);
 
 	glGenVertexArrays(1, &write_texture_quad);

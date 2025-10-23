@@ -143,6 +143,7 @@ void ChunkHandler::init_material_props()
 
 void ChunkHandler::set_material_properties(Material* material, MatType type, vector2* pos)
 {
+	assert(in_world(pos->x, pos->y));
 	if(!material) return;
 
 	material->state = NORMAL;
@@ -738,26 +739,20 @@ void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 
 
 
-void ChunkHandler::init_chunk_handler(int cW, int cH, int wW, int wH, PoolArena* arena)
+void ChunkHandler::init_chunk_handler(unsigned int x_chunks, unsigned int y_chunks, int wW, int wH, PoolArena* arena)
 {
-
-	if(wW % cW != 0 || wH % cH != 0)
-	{
-		assert(false);
-		return;
-	}
 	element_updater.init(this, wW, wH);
 	material_arena = arena;
 
-	chunk_width = cW;
-	chunk_height = cH;
+	chunk_width = (wW % x_chunks == 0)? wW/x_chunks: (wW/x_chunks) + 1;
+	chunk_height = (wH % y_chunks == 0)? wH/y_chunks: (wH/y_chunks) + 1;
 
 	world_width = wW;
 	world_height = wH;
 
-	x_chunks = wW/cW;
-	y_chunks = wH/cH;
-	chunk_size = cW * cH;
+	this->x_chunks = x_chunks;
+	this->y_chunks = y_chunks;
+	chunk_size = chunk_width * chunk_height;
 	gen.seed(rd());
 
 	element_updater.dummy_material = (Material*)allocate(material_arena);
@@ -793,10 +788,10 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material)
 			chunk->materials[index(x, y)] = mat;
 			chunk->num_materials ++;
 		}
-		else if(chunks[chunk_pos]->materials[index(x, y)] == nullptr)
+		else if(!get_material(x, y))
 		{
 			mat->chunk_index = chunks[chunk_pos]->num_materials;
-			chunks[chunk_pos]->asleep = chunks[chunk_pos]->asleep == 1? 0: 0;
+			chunks[chunk_pos]->asleep = 0;
 			chunks[chunk_pos]->update_list.push_back(mat);
 			assert(chunks[chunk_pos]->update_list[mat->chunk_index] == mat);
 			chunks[chunk_pos]->materials[index(x, y)] = mat;
@@ -804,7 +799,8 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material)
 		}
 		else
 		{
-			assert(false);
+			std::cout << "Deallocating Material	at ";
+			std::cout <<  print_pos(x, y) << std::endl;
 			int success = deallocate(material_arena, mat);
 			if(success == -1)
 			{

@@ -975,6 +975,7 @@ vector2 Elements::solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance
 	Material* colliding_material = nullptr;
 	vector2 updated_pos = pos_update(&material->position, &material->velocity, &colliding_material);
 	vector2 colliding_mat_pos = colliding_material? colliding_material->position: (vector2){-1, -1};
+	if(colliding_material != nullptr) assert(handler->in_world(colliding_mat_pos.x, colliding_mat_pos.y));
 	vector2 mat_pos = material->position;
 	//updated_pos = updated_pos.x == -1? mat_pos: updated_pos;
 	//
@@ -1322,15 +1323,13 @@ vector2 Elements::pos_update(vector2* pos, fvector2* velocity, Material** collid
 		if(colliding_material)
 		{
 			*colliding_material = y_offset > 0? handler->get_material(pos->x, pos->y + offset): handler->get_material(pos->x, pos->y - offset);
+			if(*colliding_material) assert(handler->in_world((*colliding_material)->position.x, (*colliding_material)->position.y));
 		}
 
 		if(offset == 1)
 		{
 			return {-1, -1};
 		}
-
-
-
 
 		return {pos->x, y_offset > 0? pos->y + offset - 1: pos->y - offset + 1};
 	}

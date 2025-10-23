@@ -5,131 +5,7 @@
 #include <GLFW/glfw3.h>
 #include <Material.hpp>
 #include <PoolArena.hpp>
-#include <World.hpp>
-
-
-bool paused = false;
-bool debug_mode = true;
-bool mousePressed = false;
-bool save_world = false;
-bool erase = false;
-MatType material_type = MatType::SAND;
-
-vector2 draw_size {11, 11};
-vector2 old_mouse_pos {-1, -1};
-vector2 curr_mouse_pos {-1, -1};
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos);
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	if(key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-	{
-		paused = !paused;
-	}
-	else if(key == GLFW_KEY_1 && action == GLFW_PRESS)
-	{
-		material_type = MatType::SAND;
-	}
-	else if(key == GLFW_KEY_2 && action == GLFW_PRESS)
-	{
-		material_type = MatType::WATER;
-	}
-	else if(key == GLFW_KEY_3 && action == GLFW_PRESS)
-	{
-		material_type = MatType::STONE;
-	}
-	else if(key == GLFW_KEY_4 && action == GLFW_PRESS)
-	{
-		material_type = MatType::ACID;
-	}
-	else if(key == GLFW_KEY_5 && action == GLFW_PRESS)
-	{
-		material_type = MatType::SMOKE;
-	}
-	else if(key == GLFW_KEY_6 && action == GLFW_PRESS)
-	{
-		material_type = MatType::WOOD;
-	}
-	else if(key == GLFW_KEY_7 && action == GLFW_PRESS)
-	{
-		material_type = MatType::FIRE;
-	}
-	else if(key == GLFW_KEY_8 && action == GLFW_PRESS)
-	{
-		material_type = MatType::OIL;
-	}
-	else if(key == GLFW_KEY_9 && action == GLFW_PRESS)
-	{
-		material_type = MatType::FLAMMABLE_GAS;
-	}
-	else if(key == GLFW_KEY_G && action == GLFW_PRESS)
-	{
-		debug_mode = !debug_mode;
-	}
-	else if(key == GLFW_KEY_S && action == GLFW_PRESS)
-	{
-		save_world = true;
-	}
-	else if(key == GLFW_KEY_EQUAL)
-	{
-		draw_size.x += 2;
-		draw_size.y += 2;
-		std::cout << "Draw size is: " << draw_size.x << std::endl;
-	}
-	else if(key == GLFW_KEY_MINUS)
-	{
-		draw_size.x = draw_size.x - 2 <= 0? 1: draw_size.x - 2;
-		draw_size.y = draw_size.y - 2 <= 0? 1: draw_size.y - 2;
-		std::cout << "Draw size is: " << draw_size.x << std::endl;
-	}
-}
-
-void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos)
-{
-	if(mousePressed)
-	{
-		old_mouse_pos.x = curr_mouse_pos.x;
-		old_mouse_pos.y = curr_mouse_pos.y;
-	}
-	else{
-		old_mouse_pos.x = xPos;
-		old_mouse_pos.y = yPos;
-
-	}
-
-	curr_mouse_pos.x = xPos;
-	curr_mouse_pos.y = yPos;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-	if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-	{
-		mousePressed = true;
-	}
-	else if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-	{
-		mousePressed = false;
-	}
-
-	if(button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-	{
-		erase = true;
-	}
-	else if(button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
-	{
-		erase = false;
-	}
-}
+#include <InputHandler.hpp>
 
 void glfwErrorCallback(int error, const char* description) {
 	std::cout << "GLFW Error (" << error << "): " << description << '\n';
@@ -145,15 +21,18 @@ int init_window(GLFWwindow** window)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+	glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
+	//glfwWindowHint(GLFW_SCALE_FRAMEBUFFER, GLFW_FALSE);
+
 
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-	*window = glfwCreateWindow(800, 600, "LearnOpenGl", NULL, NULL);
+	*window = glfwCreateWindow(800, 600, "Simulation", NULL, NULL);
 	if(window == NULL)
 	{
 		std::cout << "Failed to created window\n";
@@ -178,11 +57,11 @@ int init_window(GLFWwindow** window)
 		return -1;
 	}
 
-	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(*window, framebuffer_size_callback);
 	glfwSetMouseButtonCallback(*window, mouse_button_callback);
 	glfwSetCursorPosCallback(*window, cursor_pos_callback);
 	glfwSetKeyCallback(*window, key_callback);
+	
 	return 0;
 }
 
@@ -192,20 +71,22 @@ void game_loop(std::string name)
 	int success = init_window(&window);
 	assert(success == 0);
 
+	Arena app_info_arena;
+	AppInfo* app_info = init_sim_info(window, &app_info_arena);  
+
 	PoolArena* arena = init_pool(800 * 600 + 1, sizeof(Material));
 	World world;
-	world.init_world(80, 60, 800, 600, arena);
+	world.init_world(10, 10, 1200, 955, arena);
+	
 	if(name != "")
 	{
 		world.load_world(name);
-	}
-	glfwSwapBuffers(window);
+	} 
 
 	const unsigned int UPS = 120;
 	const unsigned int FPS = 60;
 	const float FPS_SLICE = 1.0f/FPS;
 	const float UPS_SLICE = 1.0f/UPS;
-	const unsigned int max_updates = 30;
 	const unsigned int MAX_FRAME_SKIPS = 2;
 	unsigned int frames_skip = 0;
 
@@ -220,27 +101,14 @@ void game_loop(std::string name)
 
 	while(!glfwWindowShouldClose(window))
 	{
-		if(mousePressed)
-		{
-			world.create_materials(old_mouse_pos, curr_mouse_pos, draw_size, material_type);
-			std::cout << "Mouse pressed\n";
-		}
-		if(erase)
-		{
-			world.delete_materials(curr_mouse_pos.x, curr_mouse_pos.y, 35, 35);
-		}
-		if(save_world)
-		{
-			world.save_world("test_world1.sim");
-			save_world = false;
-		}
+		process_input(app_info, world);
 
 		elapsed_time = glfwGetTime() - nowTime;
 		nowTime = glfwGetTime();
 		time_accumulator +=  elapsed_time;
 		frame_accumulator += elapsed_time;
 
-		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS && !paused)
+		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS && app_info->sim_state != PAUSED)
 		{
 			world.update_world(UPS_SLICE);
 			time_accumulator -= UPS_SLICE;
@@ -248,10 +116,16 @@ void game_loop(std::string name)
 		}
 		frames_skip = 0;
 
-		world.draw_world(debug_mode);
+		if(app_info->draw_state == DEBUG_DRAW)
+		{
+			world.draw_world(true);
+		}
+		else {
+			world.draw_world(false);
+		}
+
 		frame_accumulator -= FPS_SLICE;
 		glfwSwapBuffers(window);
-		glfwPollEvents();
 	}
 
 }

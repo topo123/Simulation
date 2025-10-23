@@ -22,11 +22,11 @@ class Renderer
 
 	Arena* arena;
 
-	void compile_shaders();
+	void compile_shaders(unsigned int world_width, unsigned int world_height);
 
 public:
 	void draw_texture_rect(vector2& upper, vector2& lower, float offset);
-	void initRenderData();
+	void initRenderData(unsigned int world_width, unsigned int world_height);
 	void texture_render(float tex_offset, vector2* pos, vector2* size);
 	void screen_render();
 	~Renderer();

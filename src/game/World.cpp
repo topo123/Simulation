@@ -4,131 +4,81 @@
 #include <iostream>
 #include <fstream>
 
-void World::init_world(int cW, int cH, int wW, int wH, PoolArena* material_arena)
+void World::init_world(unsigned int x_chunks, unsigned int y_chunks, int wW, int wH, PoolArena* material_arena)
 {
 	world_width = wW;
 	world_height = wH;
 
 	arena = material_arena;
 	std::cout << "Initializing Render data\n";
-	render.initRenderData();
-	handler.init_chunk_handler(cW, cH, wW, wH, material_arena);
+	render.initRenderData(wW, wH);
+	handler.init_chunk_handler(x_chunks, y_chunks, wW, wH, material_arena);
 }
 
 
 void World::create_materials(const vector2& old_center, const vector2& new_center, const vector2& draw_size, const MatType type)
 {
 
+	std::cout << "Must spawn materials from " << handler.print_pos(old_center.x, old_center.y) << " to " << handler.print_pos(new_center.x, new_center.y) << std::endl;
+
+
 	if(draw_size.x % 2 == 0 || draw_size.y % 2 == 0)
 	{
 		return;
 	}
-
-	if(new_center.x < 0 || new_center.x > world_width || new_center.y < 0 || new_center.y > world_height)
+	else if(new_center.x < 0 || new_center.x > world_width || new_center.y < 0 || new_center.y > world_height)
 	{
 		return;
 	}
-
 
 	std::vector<Material*> materials;
 
-	vector2 center = old_center;
 
-	float delta_y = new_center.y - old_center.y;
-	float delta_x = new_center.x - old_center.x;
-
-	if(delta_y == 0 && delta_x == 0)
+	if(old_center.x == new_center.x && old_center.y == new_center.y)
 	{
-		spawn_materials(center, draw_size, materials, type);
+		spawn_materials(new_center, draw_size, materials, type);
+		handler.add_materials(materials);
 		return;
 	}
 
-	float slope;
-	float intercept;
 
-	bool horz = delta_x != 0 && delta_y == 0;
-	bool vert = delta_x == 0 && delta_y != 0;
+	float delta_y = (float)(new_center.y - old_center.y);
+	float delta_x = (float)(new_center.x - old_center.x);
+	float slope = (delta_y == 0 || delta_x == 0)? 0: delta_y/delta_x;
 
-	while(horz)
-	{
-		spawn_materials(center, draw_size, materials, type);
-		center.x += draw_size.x;
+	vector2 center;
+	center.x = old_center.x;
+	center.y = old_center.y;
 
-		if(center.x >= new_center.x && delta_x > 0)
-		{
-			spawn_materials(center, draw_size, materials, type);
-			return;
-		}
-		else if(center.x <= new_center.x && delta_x < 0)
-		{
-			spawn_materials(center, draw_size, materials, type);
-			return;
-		}
-	}
-
-	while(vert)
-	{
-		spawn_materials(center, draw_size, materials, type);
-		center.y += draw_size.y;
-
-		if(center.y >= new_center.y && delta_y > 0)
-		{
-			spawn_materials(center, draw_size, materials, type);
-			return;
-		}
-		else if(center.y <= new_center.y && delta_y < 0)
-		{
-			spawn_materials(center, draw_size, materials, type);
-			return;
-		}
-	}
-
-
-	bool should_terminate = false;
-
-	if(delta_y > delta_x)
-	{
-		slope = delta_x/delta_y;
-		intercept = (old_center.y/slope) - old_center.x;
-	}
-	else{
-		slope = delta_y/delta_x;
-		intercept = old_center.y - slope * old_center.x;
-	}
-
-
-	while(delta_y > delta_x && !should_terminate)
+	while(std::abs(delta_x) >= std::abs(delta_y))
 	{
 		spawn_materials(center, draw_size, materials, type);
 
-		center.y = delta_y > 0? center.y + draw_size.y: center.y - draw_size.y;  
-		center.x = slope * center.y - intercept;
+		center.x = (delta_x > 0)? center.x + draw_size.x: center.x - draw_size.x;
+		center.y = (slope * (center.x - old_center.x)) + old_center.y;
 
-		if((center.y > new_center.y && delta_y > 0) || (center.y < new_center.y && delta_y < 0))
+		if((center.x >= new_center.x && delta_x > 0) || (center.x < new_center.x && delta_x < 0))
 		{
-			center.y = new_center.y;
-			center.x = slope * center.y - intercept;
 			spawn_materials(center, draw_size, materials, type);
-			should_terminate = true;
+			break;
 		}
 	}
 
-
-	while(delta_y < delta_x && !should_terminate)
+	while(std::abs(delta_x) < std::abs(delta_y))
 	{
 		spawn_materials(center, draw_size, materials, type);
 
-		center.x = delta_x > 0? center.x + draw_size.x: center.x - draw_size.x;
-		center.y = slope * center.x + intercept;
+		center.y = (delta_y > 0)? center.y + draw_size.y: center.y - draw_size.y;
+		center.x = slope == 0? old_center.x: old_center.x + ((center.y - old_center.y)/slope);
 
-		if((center.x > new_center.x && delta_x > 0) && (center.x < new_center.x && delta_x < 0))
+		if((center.y >= new_center.y && delta_y > 0) || (center.y < new_center.y && delta_y < 0))
 		{
-			center.x = new_center.x;
-			center.y = slope * center.x + intercept;
 			spawn_materials(center, draw_size, materials, type);
-			should_terminate = true;
+			break;
 		}
 	}
+
+	handler.add_materials(materials);
 }
 
 void World::flame_brush(const int num_materials, int lower_x, int lower_y, int upper_x, int upper_y, std::vector<Material*>& materials)
@@ -161,10 +111,12 @@ void World::regular_brush(const int num_materials, int lower_x, int lower_y, int
 
 	for(size_t i = 0; i < num_materials; i ++)
 	{
+
 		pos.x = lower_x;
 		pos.y = lower_y;
+		
 
-		if(!handler.get_material(pos.x, pos.y) && handler.in_world(pos.x, pos.y))
+		if(!handler.get_material(pos.x, pos.y))
 		{
 			materials.push_back(static_cast<Material*>(allocate(arena)));
 			handler.set_material_properties(materials.back(), type, &pos);
@@ -271,6 +223,7 @@ void World::update_world(const float dT)
 {
 	ChunkHandler::Chunk* chunk;
 	ChunkHandler::Chunk* delete_chunk; 
+
 	for(size_t i = 0; i < handler.iter_chunks.size(); i ++)
 	{
 		chunk = handler.iter_chunks[i];
@@ -296,6 +249,7 @@ void World::update_world(const float dT)
 	for(size_t i = 0; i < handler.add_materials_list.size(); i ++){
 		handler.iter_chunks.push_back(handler.add_materials_list[i]);
 	}
+
 	handler.add_materials_list.clear();
 	handler.delete_chunks.clear();
 }
