@@ -1,0 +1,14 @@
+.cache/
+compile_commands.json
+build/
+logs/
+compile.sh
+flame.sh
+perf.data
+perf.data.old
+out.folded
+out.perf
+perf.svg
+cachegrind.*
+asan_ignore.txt
+out.perf-folded
