@@ -10,6 +10,7 @@ struct Shader
 };
 
 Shader* get_shader(std::string vertex, std::string frag, Arena* shader_arena);
+void create_shader_program(unsigned int& shader_program, const std::string vshader_path, const std::string fshader_path);
 void print_shader(char* shader);
 
 

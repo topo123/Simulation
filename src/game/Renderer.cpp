@@ -8,108 +8,25 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <Shader.hpp>
 
-
-void Renderer::compile_shaders(unsigned int world_width, unsigned int world_height)
+void Renderer::init_render_data(unsigned int world_width, unsigned int world_height)
 {
-	std::cout << "Initializing the arena\n";
-	arena = init_arena(1024 * 1024 * 1024);
-	std::cout << "Arena initialized\n";
-
-	Shader* shader = get_shader("shaders/frame_vert.vert", "shaders/frame_frag.frag", arena);
-	Shader* fbo_shader = get_shader("shaders/fbo_vert.vert", "shaders/fbo_frag.frag", arena);
+	create_shader_program(writer_shader_program, "shaders/material_vert_shader.glsl", "shaders/material_frag_shader.glsl");
+	create_shader_program(debug_shader_program, "shaders/debug_vert_shader.glsl", "shaders/debug_frag_shader.glsl");
+	create_shader_program(screen_shader_program, "shaders/screen_vert_shader.glsl", "shaders/screen_frag_shader.glsl");
 
 
-	unsigned int vShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vShader, 1, &(shader->vertex_shader), NULL);
-	glCompileShader(vShader);
-
-	int success;
-	char infoLog[1024];
-	glGetShaderiv(vShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(vShader, 1024, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED texture shader\n" << infoLog << std::endl;
-		throw std::bad_exception();
-	}
-
-	unsigned int fShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fShader, 1, &(shader->frag_shader), NULL);
-	glCompileShader(fShader);
-
-	glGetShaderiv(fShader, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(fShader, 1024, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED texture shader\n" << infoLog << std::endl;
-		throw std::bad_exception();
-	}
-
-	writer_shader_program = glCreateProgram();
-	glAttachShader(writer_shader_program, vShader);
-	glAttachShader(writer_shader_program, fShader);
-	glLinkProgram(writer_shader_program);
-
-
-	std::cout << "Deleting the shaders\n";
-	glDeleteShader(vShader);
-	glDeleteShader(fShader);
-	std::cout << "Shaders deleted\n";
+	glm::mat4 proj = glm::ortho(0.0f, (float)world_width, (float)world_height, 0.0f, -1.0f, 1.0f);
 
 	glUseProgram(writer_shader_program);
-	glm::mat4 proj = glm::ortho(0.0f, (float)world_width, (float)world_height, 0.0f, -1.0f, 1.0f);
 	int matrix = glGetUniformLocation(writer_shader_program, "projection");
 	assert(matrix != -1);
 	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(proj));
 
-	unsigned int fbo_vShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(fbo_vShader, 1, &(fbo_shader->vertex_shader), NULL);
-	glCompileShader(fbo_vShader);
+	glUseProgram(debug_shader_program);
+	matrix = glGetUniformLocation(writer_shader_program, "projection");
+	assert(matrix != -1);
+	glUniformMatrix4fv(matrix, 1, GL_FALSE, glm::value_ptr(proj));
 
-	int fbo_success;
-	char fbo_infoLog[1024];
-	glGetShaderiv(vShader, GL_COMPILE_STATUS, &fbo_success);
-	if (!fbo_success)
-	{
-		glGetShaderInfoLog(vShader, 1024, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED screen shader\n" << infoLog << std::endl;
-		throw std::bad_exception();
-	}
-
-	unsigned int fbo_fShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fbo_fShader, 1, &(fbo_shader->frag_shader), NULL);
-	glCompileShader(fbo_fShader);
-
-	glGetShaderiv(fbo_fShader, GL_COMPILE_STATUS, &fbo_success);
-	if (!fbo_success)
-	{
-		glGetShaderInfoLog(fbo_fShader, 1024, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED screen shader\n" << infoLog << std::endl;
-		throw std::bad_exception();
-	}
-
-	screen_shader_program = glCreateProgram();
-	glAttachShader(screen_shader_program, fbo_vShader);
-	glAttachShader(screen_shader_program, fbo_fShader);
-	glLinkProgram(screen_shader_program);
-
-
-	std::cout << "Deleting the shaders\n";
-	glDeleteShader(fbo_vShader);
-	glDeleteShader(fbo_fShader);
-	glDeleteShader(vShader);
-	glDeleteShader(fShader);
-	std::cout << "Shaders deleted\n";
-
-
-
-	std::cout << "Freeing the arean\n";
-	free_arena(arena);
-	std::cout << "Freed the arean\n";
-}
-
-void Renderer::init_render_data(unsigned int world_width, unsigned int world_height)
-{
 	unsigned char tex_colors[] = {
 		246, 220, 189, 255, //sand color
 		15, 94, 156, 255, //water color
@@ -132,6 +49,21 @@ void Renderer::init_render_data(unsigned int world_width, unsigned int world_hei
 		0.0f, 1.0f, 0.0f, 1.0f
 	};
 
+
+	float empty_quad_vertices[] = {
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f
+	};
+
+	unsigned int empty_quad_indices[] = {
+		0, 1,
+		1, 2,
+		2, 3,
+		0, 3
+	};
+
 	unsigned int indices[] = {
 		0, 1, 2,
 		0, 3, 2
@@ -147,8 +79,8 @@ void Renderer::init_render_data(unsigned int world_width, unsigned int world_hei
 		1.0f,  1.0f,  1.0f, 1.0f
 	};
 
-
-	compile_shaders(world_width, world_height);
+	unsigned int empty_quad_data;
+	unsigned int empty_quad_indices_data;
 	unsigned int mat_quad_ebo;
 	unsigned int mat_quad_vbo;
 	unsigned int write_vbo;
@@ -187,6 +119,11 @@ void Renderer::init_render_data(unsigned int world_width, unsigned int world_hei
 	glGenBuffers(1, &debug_vbo);
 	glGenBuffers(1, &mat_quad_vbo);
 	glGenBuffers(1, &mat_quad_ebo);
+
+	glGenVertexArrays(1, &debug_vao);
+	glGenBuffers(1, &empty_quad_data);
+	glGenBuffers(1, &empty_quad_indices_data);
+
 	glBindVertexArray(mat_vao);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mat_quad_vbo);
@@ -222,33 +159,30 @@ void Renderer::init_render_data(unsigned int world_width, unsigned int world_hei
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
 
+	glBindVertexArray(debug_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, empty_quad_data);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(empty_quad_vertices), empty_quad_vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, empty_quad_indices_data);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(empty_quad_indices), empty_quad_indices, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, debug_vbo);
-	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
-	glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
-	glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
-	glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 
-	glVertexAttribDivisor(6, 1);
-	glVertexAttribDivisor(7, 1);
-	glVertexAttribDivisor(8, 1);
-	glVertexAttribDivisor(9, 1);
+	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
+	glVertexAttribDivisor(3, 1);
+	glVertexAttribDivisor(4, 1);
 
-	glEnableVertexAttribArray(6);
-	glEnableVertexAttribArray(7);
-	glEnableVertexAttribArray(8);
-	glEnableVertexAttribArray(9);
-
-
-	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-		std::cerr << "Error: Framebuffer is not complete!" << std::endl;
-	}
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glGenVertexArrays(1, &screen_quad);
@@ -268,7 +202,6 @@ void Renderer::init_render_data(unsigned int world_width, unsigned int world_hei
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	
 }
 
 
@@ -298,15 +231,20 @@ void Renderer::draw_materials(const std::vector<float>& tex_offsets, const std::
 void Renderer::draw_empty_rect(const std::vector<glm::mat4> debug_rect_transforms, float offset)
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, tex_fbo);
-	glUseProgram(writer_shader_program);
+	glUseProgram(debug_shader_program);
 	glBindTexture(GL_TEXTURE_1D, material_texture);
 
-	glBindVertexArray(mat_vao);
+	glBindVertexArray(debug_vao);
+
+	int tex_offset = glGetUniformLocation(debug_shader_program, "tex_offset");
+	glUniform1f(tex_offset, offset);
 
 	glBindBuffer(GL_ARRAY_BUFFER, debug_vbo);
 	glBufferData(GL_ARRAY_BUFFER, debug_rect_transforms.size() * sizeof(glm::mat4), debug_rect_transforms.data(), GL_DYNAMIC_DRAW);
 
-	glDrawArraysInstanced(GL_LINE_LOOP, 0, 4, debug_rect_transforms.size());
+
+	glDrawElementsInstanced(GL_LINES, 8, GL_UNSIGNED_INT, 0, debug_rect_transforms.size());
+	std::cout << "Error: " << glGetError() << std::endl;
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

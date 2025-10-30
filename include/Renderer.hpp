@@ -13,6 +13,8 @@ class Renderer
 	unsigned int tex_fbo;
 
 	unsigned int mat_vao;
+	unsigned int debug_vao;
+
 	unsigned int mat_tex_vbo;
 	unsigned int mat_pos_vbo;
 	unsigned int debug_vbo;
@@ -20,14 +22,13 @@ class Renderer
 	unsigned int screen_quad;
 
 	unsigned int writer_shader_program;
+	unsigned debug_shader_program;
 	unsigned int screen_shader_program;
 
 	unsigned int material_texture;
 	unsigned int write_texture;
 
 	Arena* arena;
-
-	void compile_shaders(unsigned int world_width, unsigned int world_height);
 
 public:
 	void draw_empty_rect(const std::vector<glm::mat4> debug_rect_transforms, float offset);

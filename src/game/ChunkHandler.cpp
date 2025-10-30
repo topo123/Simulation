@@ -881,8 +881,12 @@ void ChunkHandler::draw_chunks_to_texture(Renderer* render, bool debug_mode)
 			chunk_model = glm::translate(chunk_model, glm::vec3(start_coords.x, start_coords.y, 0.0f));
 			chunk_model = glm::scale(chunk_model, glm::vec3(chunk_width, chunk_height, 1.0f));
 
-			dirty_model = glm::translate(chunk_model, glm::vec3(chunk->d_upper.x, chunk->d_upper.y, 0.0f));
-			dirty_model = glm::scale(chunk_model, glm::vec3((chunk->d_lower.x - chunk->d_upper.x), (chunk->d_lower.y - chunk->d_upper.y), 1.0f));
+			if(chunk->d_lower.x != - 1)
+			{
+				dirty_model = glm::translate(dirty_model, glm::vec3(chunk->d_upper.x, chunk->d_upper.y, 0.0f));
+				dirty_model = glm::scale(dirty_model, glm::vec3((chunk->d_lower.x - chunk->d_upper.x), (chunk->d_lower.y - chunk->d_upper.y), 1.0f));
+				std::cout << "Dirty rect coords: " << print_pos((chunk->d_lower.x - chunk->d_upper.x), (chunk->d_lower.y - chunk->d_upper.y)) << std::endl;
+			}
 
 			chunk_rect_transforms.push_back(chunk_model);
 			debug_rect_transforms.push_back(dirty_model);

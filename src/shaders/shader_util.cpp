@@ -1,8 +1,50 @@
+#include <glad/glad.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include "Shader.hpp"
 
+void create_shader_program(unsigned int& shader_program, std::string vshader_path, std::string fshader_path)
+{
+	Arena* arena = init_arena(1024);
+	Shader* shader = get_shader(vshader_path, fshader_path, arena);
+
+	unsigned int vshader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vshader, 1, &(shader->vertex_shader), NULL);
+	glCompileShader(vshader);
+
+	int success;
+	char infoLog[1024];
+	glGetShaderiv(vshader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(vshader, 1024, NULL, infoLog);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED texture shader\n" << infoLog << std::endl;
+		throw std::bad_exception();
+	}
+
+	unsigned int fshader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fshader, 1, &(shader->frag_shader), NULL);
+	glCompileShader(fshader);
+
+	glGetShaderiv(fshader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fshader, 1024, NULL, infoLog);
+		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED texture shader\n" << infoLog << std::endl;
+		throw std::bad_exception();
+	}
+
+	shader_program = glCreateProgram();
+	glAttachShader(shader_program, vshader);
+	glAttachShader(shader_program, fshader);
+	glLinkProgram(shader_program);
+
+	glDeleteShader(vshader);
+	glDeleteShader(fshader);
+
+	free_arena(arena);
+}
 
 void print_shader(char* shader) 
 {

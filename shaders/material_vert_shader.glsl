@@ -3,7 +3,6 @@
 layout (location = 0) in vec4 px_pos;
 layout (location = 1) in float tex_offset;
 layout (location = 2) in mat4 transform;
-layout (location = 6) in mat4 debug_transform;
 
 uniform mat4 projection;
 
