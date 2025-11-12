@@ -96,15 +96,7 @@ void Renderer::init_render_data(unsigned int world_width, unsigned int world_hei
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 12, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
-
-	unsigned char pixels[12 * 4];
-	glGetTexImage(GL_TEXTURE_1D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-	for(size_t i = 0; i < 48; i ++)
-	{
-		 std::cout << (int)pixels[i] << ", ";
-	}
-	std::cout << "\n";
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 12, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_colors);
 
 	glGenTextures(1, &write_texture);
 	glBindTexture(GL_TEXTURE_2D, write_texture);
@@ -244,7 +236,6 @@ void Renderer::draw_empty_rect(const std::vector<glm::mat4> debug_rect_transform
 
 
 	glDrawElementsInstanced(GL_LINES, 8, GL_UNSIGNED_INT, 0, debug_rect_transforms.size());
-	std::cout << "Error: " << glGetError() << std::endl;
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

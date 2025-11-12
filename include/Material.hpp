@@ -79,7 +79,7 @@ struct vector_hash
 	}
 };
 
-enum MatType: uint32_t
+enum MatType: uint8_t
 {
 	SAND = 0,
 	WATER = 1,
@@ -96,20 +96,19 @@ enum MatType: uint32_t
 
 struct MatTexCoords
 {
-	const float SAND {0.0f};
-	const float WATER = {1.0f/NUM_COLORS};
-	const float STONE = {2.0f/NUM_COLORS};
-	const float ACID = {3.0f/NUM_COLORS};
-	const float SMOKE = {4.0f/NUM_COLORS};
-	const float WOOD = {5.0f/NUM_COLORS};
-	const float FIRE = {6.0f/NUM_COLORS};
-	const float FIRE_CHANGE_COLOR = {7.0f/NUM_COLORS};
-	const float OIL = {8.0f/NUM_COLORS};
-	const float FL_GAS = {9.0f/NUM_COLORS};
-	const float DIRTY_DEBUG = {10.0f/NUM_COLORS};
-	const float GRID_DEBUG = {11.0f/NUM_COLORS};
+	const float SAND {0.5f/NUM_COLORS};
+	const float WATER = {(1.0f + 0.5f)/NUM_COLORS};
+	const float STONE = {(2.0f + 0.5f)/NUM_COLORS};
+	const float ACID = {(3.0f + 0.5f)/NUM_COLORS};
+	const float SMOKE = {(4.0f + 0.5f)/NUM_COLORS};
+	const float WOOD = {(5.0f + 0.5f)/NUM_COLORS};
+	const float FIRE = {(6.0f + 0.5f)/NUM_COLORS};
+	const float FIRE_CHANGE_COLOR = {(7.0f + 0.5f)/NUM_COLORS};
+	const float OIL = {(8.0f + 0.5f)/NUM_COLORS};
+	const float FL_GAS = {(9.0f + 0.5f)/NUM_COLORS};
+	const float DIRTY_DEBUG = {(10.0f + 0.5f)/NUM_COLORS};
+	const float GRID_DEBUG = {(11.0f + 0.5f)/NUM_COLORS};
 };
-;
 
 struct serialized_material{
 	int x_pos;

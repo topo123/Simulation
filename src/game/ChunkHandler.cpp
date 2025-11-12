@@ -156,7 +156,10 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 	material->velocity.y = 1;
 	material->health = material_props[type]->health;
 	material->tex_offset = material_props[type]->tex_offset;
+
+	std::cout << "Material " << type << " has texture offset of " << material->tex_offset << std::endl;
 }
+
 
 void ChunkHandler::destroy_material(Material* material)
 {
@@ -885,7 +888,6 @@ void ChunkHandler::draw_chunks_to_texture(Renderer* render, bool debug_mode)
 			{
 				dirty_model = glm::translate(dirty_model, glm::vec3(chunk->d_upper.x, chunk->d_upper.y, 0.0f));
 				dirty_model = glm::scale(dirty_model, glm::vec3((chunk->d_lower.x - chunk->d_upper.x), (chunk->d_lower.y - chunk->d_upper.y), 1.0f));
-				std::cout << "Dirty rect coords: " << print_pos((chunk->d_lower.x - chunk->d_upper.x), (chunk->d_lower.y - chunk->d_upper.y)) << std::endl;
 			}
 
 			chunk_rect_transforms.push_back(chunk_model);
@@ -901,6 +903,7 @@ void ChunkHandler::draw_chunks_to_texture(Renderer* render, bool debug_mode)
 			model = glm::translate(model, glm::vec3(chunk->update_list[j]->position.x, chunk->update_list[j]->position.y, 0.0f));
 			model = glm::scale(model, glm::vec3(size.x, size.y, 1.0f));
 			transforms.push_back(model);
+
 		}
 	}
 
