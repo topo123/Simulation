@@ -1,0 +1,36 @@
+Modify architecture for my project.
+
+Chunks should have an active and asleep list, these will keep track of the which materials should be tracked for updating the dirty rect. Also which materials should be moved on the current frame update. 
+
+Considering this dirty rects become kinda useless for updates, more useful for rendering regions where the changes occur. 
+
+Dirty rects were originally created per frame to scan only regions where we thought changes might occur, if I could define an actual resting state and active state I would not need dirty rects.
+
+Simply a resting material could either be a material that cannot move, or a material that can move but does not have the speed for it.
+
+For the second criteria this could be expalined by a solid material supported by materials to it's left and bottom, but no material to the diagnol right.
+
+It could move to that space, but if it does not have a downward velocity it will not. 
+
+
+Active materials will have only ONE of these critera
+	- A material that has a velocity that will allow it to move into some empty space.
+	- A material that cannot move but can react/interact with one of it's neighbor materials. Neighbor materials are defined by materials diagnolly, vertically, and horizontally adjacent to a material. 
+
+	If a material can move or it can react, it will prefer moving over reacting. 
+
+	Resting materials will have these criteria for being added back to the active list
+	- A neighboring material is active and the current resting material has a space it can move into.
+	-Nearby resting materials are erased and the current resting material will be added to the active list. 
+
+	Now how to achieve this with the actual architecture.
+
+	We have a function that can already determine based off a materials current velocity and position, if it has a valid position it can move to. 
+
+	This could be used to determine which materials should be put to rest. 
+
+	We need a funtion that determines how velocities change based off collisions. 
+
+	Now intermediate position bounding, let's say in midair a material we can set to resting. When the materials that surround it move it should push that material back to the active list.
+
+	When we add a material to the active list we will 

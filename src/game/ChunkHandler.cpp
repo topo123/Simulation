@@ -3,10 +3,8 @@
 #include <iostream>
 #include <algorithm>
 #include <climits>
-#include <cstdint>
 #include <ChunkHandler.hpp>
 #include <cstring>
-#include <cstdint>
 #include <cassert>
 
 #define TEX_COORD(MATERIAL) tex_coords.##MATERIAL
@@ -156,8 +154,6 @@ void ChunkHandler::set_material_properties(Material* material, MatType type, vec
 	material->velocity.y = 1;
 	material->health = material_props[type]->health;
 	material->tex_offset = material_props[type]->tex_offset;
-
-	std::cout << "Material " << type << " has texture offset of " << material->tex_offset << std::endl;
 }
 
 
@@ -169,15 +165,9 @@ void ChunkHandler::destroy_material(Material* material)
 	}		
 	vector2 pos{material->position.x, material->position.y};
 	Chunk* chunk = get_chunk(pos.x, pos.y);
-	if(chunk->asleep == 1)
-	{
-		wake_up_materials(chunk);
-		chunk->asleep = 0;
-	}
 	assert(chunk != nullptr);
-	remove_mat_from_update_list(chunk, material);
-	assert(chunk->materials[index(pos.x, pos.y)] != nullptr);
-	chunk->materials[index(pos.x, pos.y)] = nullptr;
+	assert(chunk->grid[index(pos.x, pos.y)] != nullptr);
+	chunk->grid[index(pos.x, pos.y)] = nullptr;
 	chunk->num_materials --;
 	int free_failure = deallocate(material_arena, material);
 	assert(free_failure != -1);
@@ -198,21 +188,20 @@ std::string ChunkHandler::print_pos(fvector2& pos)
 	return "(" + std::to_string(pos.x) + ", " + std::to_string(pos.y) + ")"; 
 }
 
-ChunkHandler::Chunk* ChunkHandler::init_chunk(int mat_x, int mat_y)
+Chunk* ChunkHandler::init_chunk(int mat_x, int mat_y)
 {
 	Chunk* new_chunk = new Chunk();
 
 	assert(new_chunk != nullptr);
-	new_chunk->d_lower.x = INT_MIN, new_chunk->d_lower.y = INT_MIN;
-	new_chunk->d_upper.x = INT_MAX, new_chunk->d_upper.y = INT_MAX;
-	new_chunk->asleep = 0;
+	new_chunk->lower_rect_coords.x = INT_MIN, new_chunk->lower_rect_coords.y = INT_MIN;
+	new_chunk->upper_rect_coords.x = INT_MAX, new_chunk->upper_rect_coords.y = INT_MAX;
 	new_chunk->coords.x = mat_x/chunk_width;
 	new_chunk->coords.y = mat_y/chunk_height;
-	new_chunk->materials = new Material*[chunk_width * chunk_height];
+	new_chunk->grid = new Material*[chunk_width * chunk_height];
 
 	for(size_t i = 0; i < chunk_size; i ++)
 	{
-		new_chunk->materials[i] = nullptr;
+		new_chunk->grid[i] = nullptr;
 	}
 
 	new_chunk->num_materials = 0;
@@ -370,13 +359,13 @@ void ChunkHandler::move_material(Chunk* chunk, Material* material, vector2* old_
 	if(chunks.find(new_coords) == chunks.end())
 	{
 		Chunk* new_chunk = init_chunk(new_pos->x, new_pos->y);
-		assert(chunk->materials[index(old_pos->x, old_pos->y)] != nullptr);
-		chunk->materials[index(old_pos->x, old_pos->y)] = nullptr;
+		assert(chunk->grid[index(old_pos->x, old_pos->y)] != nullptr);
+		chunk->grid[index(old_pos->x, old_pos->y)] = nullptr;
 		chunk->num_materials --;
-		assert(chunk->update_list[material->chunk_index] == material);
-		remove_mat_from_update_list(chunk, material);
-		new_chunk->materials[index(new_pos->x, new_pos->y)] = material;
-		new_chunk->update_list.push_back(material);
+		assert(chunk->active_list[material->chunk_index] == material);
+		//remove_mat_from_update_list(chunk, material);
+		new_chunk->grid[index(new_pos->x, new_pos->y)] = material;
+		new_chunk->active_list.push_back(material);
 		new_chunk->num_materials ++;
 		material->position.x = new_pos->x;
 		material->position.y = new_pos->y;
@@ -384,11 +373,11 @@ void ChunkHandler::move_material(Chunk* chunk, Material* material, vector2* old_
 	}
 	else if(chunks[new_coords] == chunk)
 	{
-		assert(chunk->update_list[material->chunk_index] == material);
-		assert(chunk->materials[index(old_pos->x, old_pos->y)] != nullptr);
-		assert(chunk->materials[index(new_pos->x, new_pos->y)] == nullptr);
-		chunk->materials[index(new_pos->x, new_pos->y)] = material;
-		chunk->materials[index(old_pos->x, old_pos->y)] = nullptr;
+		assert(chunk->active_list[material->chunk_index] == material);
+		assert(chunk->grid[index(old_pos->x, old_pos->y)] != nullptr);
+		assert(chunk->grid[index(new_pos->x, new_pos->y)] == nullptr);
+		chunk->grid[index(new_pos->x, new_pos->y)] = material;
+		chunk->grid[index(old_pos->x, old_pos->y)] = nullptr;
 		material->position.x = new_pos->x;
 		material->position.y = new_pos->y;
 	}
@@ -397,28 +386,26 @@ void ChunkHandler::move_material(Chunk* chunk, Material* material, vector2* old_
 
 		Chunk* new_chunk = chunks[new_coords];
 
+		/*
 		if(new_chunk->asleep == 1)
 		{
 			wake_up_materials(chunk);
 			new_chunk->asleep = 0;
 		}
+		*/
 
-		assert(chunk->materials[index(old_pos->x, old_pos->y)] != nullptr);
-		assert(new_chunk->materials[index(new_pos->x, new_pos->y)] == nullptr);
-		chunk->materials[index(old_pos->x, old_pos->y)] = nullptr;
-		assert(chunk->update_list[material->chunk_index] == material);
-		remove_mat_from_update_list(chunk, material);
+		assert(chunk->grid[index(old_pos->x, old_pos->y)] != nullptr);
+		assert(new_chunk->grid[index(new_pos->x, new_pos->y)] == nullptr);
+		chunk->grid[index(old_pos->x, old_pos->y)] = nullptr;
+		assert(chunk->active_list[material->chunk_index] == material);
+		//remove_mat_from_update_list(chunk, material);
 		chunk->num_materials --;
-		new_chunk->materials[index(new_pos->x, new_pos->y)] = material;
-		new_chunk->update_list.push_back(material);
+		new_chunk->grid[index(new_pos->x, new_pos->y)] = material;
+		new_chunk->active_list.push_back(material);
 		material->chunk_index = new_chunk->num_materials;
 		new_chunk->num_materials ++;
 		material->position.x = new_pos->x;
 		material->position.y = new_pos->y;
-	}
-	else 
-{
-		assert(false);
 	}
 
 }
@@ -431,19 +418,18 @@ void ChunkHandler::swap_material(Chunk* chunk, Material* material, vector2* old_
 		return;
 	}
 
-	assert(chunk->asleep == 0);
 	vector2 new_coords {new_pos->x/chunk_width, new_pos->y/chunk_height};
 	if(chunks[new_coords] == chunk)
 	{
 
 
-		assert(chunk->materials[index(new_pos->x, new_pos->y)] != nullptr);
-		assert(chunk->materials[index(old_pos->x, old_pos->y)] == material);
+		assert(chunk->grid[index(new_pos->x, new_pos->y)] != nullptr);
+		assert(chunk->grid[index(old_pos->x, old_pos->y)] == material);
 		Material* swap_material = material;
-		chunk->materials[index(old_pos->x, old_pos->y)] = chunk->materials[index(new_pos->x, new_pos->y)];
-		chunk->materials[index(new_pos->x, new_pos->y)] = swap_material;
-		chunk->materials[index(old_pos->x, old_pos->y)]->position.x = old_pos->x;
-		chunk->materials[index(old_pos->x, old_pos->y)]->position.y = old_pos->y;
+		chunk->grid[index(old_pos->x, old_pos->y)] = chunk->grid[index(new_pos->x, new_pos->y)];
+		chunk->grid[index(new_pos->x, new_pos->y)] = swap_material;
+		chunk->grid[index(old_pos->x, old_pos->y)]->position.x = old_pos->x;
+		chunk->grid[index(old_pos->x, old_pos->y)]->position.y = old_pos->y;
 
 		material->position.x = new_pos->x;
 		material->position.y = new_pos->y;
@@ -451,21 +437,23 @@ void ChunkHandler::swap_material(Chunk* chunk, Material* material, vector2* old_
 	else if(chunks[new_coords] != chunk)
 	{
 		Chunk* new_chunk = chunks[new_coords];
+		/*
 		if(new_chunk->asleep == 1)
 		{
 			wake_up_materials(chunk);
 			new_chunk->asleep = 0;
 		}
+		*/
 
 		Material* swap_material = material;
-		Material* new_material = new_chunk->materials[index(new_pos->x, new_pos->y)];
-		assert(chunk->materials[index(old_pos->x, old_pos->y)] == material);
-		chunk->materials[index(old_pos->x, old_pos->y)] = new_material;
-		new_chunk->materials[index(new_pos->x, new_pos->y)] = swap_material;
-		remove_mat_from_update_list(chunk, swap_material);
-		remove_mat_from_update_list(chunk, new_material);
-		chunk->update_list.push_back(new_material);
-		new_chunk->update_list.push_back(swap_material);
+		Material* new_material = new_chunk->grid[index(new_pos->x, new_pos->y)];
+		assert(chunk->grid[index(old_pos->x, old_pos->y)] == material);
+		chunk->grid[index(old_pos->x, old_pos->y)] = new_material;
+		new_chunk->grid[index(new_pos->x, new_pos->y)] = swap_material;
+		//remove_mat_from_update_list(chunk, swap_material);
+		//remove_mat_from_update_list(chunk, new_material);
+		chunk->active_list.push_back(new_material);
+		new_chunk->active_list.push_back(swap_material);
 		new_material->position.x = old_pos->x;
 		new_material->position.y = old_pos->y;
 
@@ -477,8 +465,8 @@ void ChunkHandler::swap_material(Chunk* chunk, Material* material, vector2* old_
 
 void ChunkHandler::modify_rect(Chunk* chunk, vector2* new_rect_upper, vector2* new_rect_lower)
 {
-	vector2* old_rect_upper = &chunk->d_upper;
-	vector2* old_rect_lower = &chunk->d_lower;
+	vector2* old_rect_upper = &chunk->upper_rect_coords;
+	vector2* old_rect_lower = &chunk->lower_rect_coords;
 
 	vector2 upper_chunk {new_rect_upper->x/chunk_width, new_rect_upper->y/chunk_height};
 	vector2 lower_chunk {new_rect_lower->x/chunk_width, new_rect_lower->y/chunk_height};
@@ -512,41 +500,41 @@ void ChunkHandler::modify_rect(Chunk* chunk, vector2* new_rect_upper, vector2* n
 		new_rect_lower->y = chunk->coords.y * chunk_height + chunk_height - 1;
 	}
 
-	if(chunk->d_upper.x == INT_MAX)
+	if(chunk->upper_rect_coords.x == INT_MAX)
 	{
-		chunk->d_upper.x = new_rect_upper->x;
-		chunk->d_upper.y = new_rect_upper->y;
-		chunk->d_lower.x = new_rect_lower->x;
-		chunk->d_lower.y = new_rect_lower->y;
+		chunk->upper_rect_coords.x = new_rect_upper->x;
+		chunk->upper_rect_coords.y = new_rect_upper->y;
+		chunk->lower_rect_coords.x = new_rect_lower->x;
+		chunk->lower_rect_coords.y = new_rect_lower->y;
 		return;
 	}
 
-	if(new_rect_upper->x > chunk->d_upper.x && new_rect_lower->x < chunk->d_lower.x && new_rect_upper->y > chunk->d_upper.y && new_rect_lower->y < chunk->d_lower.y)
+	if(new_rect_upper->x > chunk->upper_rect_coords.x && new_rect_lower->x < chunk->lower_rect_coords.x && new_rect_upper->y > chunk->upper_rect_coords.y && new_rect_lower->y < chunk->lower_rect_coords.y)
 	{
-		chunk->d_upper.x = new_rect_upper->x;
-		chunk->d_upper.y = new_rect_upper->y;
-		chunk->d_lower.x = new_rect_lower->x;
-		chunk->d_lower.y = new_rect_lower->y;
+		chunk->upper_rect_coords.x = new_rect_upper->x;
+		chunk->upper_rect_coords.y = new_rect_upper->y;
+		chunk->lower_rect_coords.x = new_rect_lower->x;
+		chunk->lower_rect_coords.y = new_rect_lower->y;
 		return;
 	}
 
-	if(!(new_rect_upper->x > chunk->d_lower.x || new_rect_upper->y > chunk->d_lower.y || new_rect_lower->x < chunk->d_upper.x || new_rect_lower->y < chunk->d_upper.y))
+	if(!(new_rect_upper->x > chunk->lower_rect_coords.x || new_rect_upper->y > chunk->lower_rect_coords.y || new_rect_lower->x < chunk->upper_rect_coords.x || new_rect_lower->y < chunk->upper_rect_coords.y))
 	{
-		chunk->d_upper.x = chunk->d_upper.x > new_rect_upper->x? new_rect_upper->x: chunk->d_upper.x;
-		chunk->d_upper.y = chunk->d_upper.y > new_rect_upper->y? new_rect_upper->y: chunk->d_upper.y;
-		chunk->d_lower.x = chunk->d_lower.x < new_rect_lower->x? new_rect_lower->x: chunk->d_lower.x;
-		chunk->d_lower.y = chunk->d_lower.y < new_rect_lower->y? new_rect_lower->y: chunk->d_lower.y;
+		chunk->upper_rect_coords.x = chunk->upper_rect_coords.x > new_rect_upper->x? new_rect_upper->x: chunk->upper_rect_coords.x;
+		chunk->upper_rect_coords.y = chunk->upper_rect_coords.y > new_rect_upper->y? new_rect_upper->y: chunk->upper_rect_coords.y;
+		chunk->lower_rect_coords.x = chunk->lower_rect_coords.x < new_rect_lower->x? new_rect_lower->x: chunk->lower_rect_coords.x;
+		chunk->lower_rect_coords.y = chunk->lower_rect_coords.y < new_rect_lower->y? new_rect_lower->y: chunk->lower_rect_coords.y;
 	}
 	else
 {
-		chunk->d_upper.x = new_rect_upper->x;
-		chunk->d_upper.y = new_rect_upper->y;
-		chunk->d_lower.x = new_rect_lower->x;
-		chunk->d_lower.y = new_rect_lower->y;
+		chunk->upper_rect_coords.x = new_rect_upper->x;
+		chunk->upper_rect_coords.y = new_rect_upper->y;
+		chunk->lower_rect_coords.x = new_rect_lower->x;
+		chunk->lower_rect_coords.y = new_rect_lower->y;
 	}
 
-	//assert(chunk->d_upper.x < chunk->d_lower.x && chunk->d_upper.y < chunk->d_lower.y);
-	//assert(chunk->d_upper.x > 0 && chunk->d_upper.y > 0);
+	//assert(chunk->upper_rect_coords.x < chunk->lower_rect_coords.x && chunk->upper_rect_coords.y < chunk->lower_rect_coords.y);
+	//assert(chunk->upper_rect_coords.x > 0 && chunk->upper_rect_coords.y > 0);
 
 
 }
@@ -554,20 +542,26 @@ void ChunkHandler::modify_rect(Chunk* chunk, vector2* new_rect_upper, vector2* n
 void ChunkHandler::make_dirty_rect(Chunk* chunk)
 {
 
+	if(chunk->active_list.size() == 0)
+	{
+		chunk->upper_rect_coords.x = -1;
+		chunk->upper_rect_coords.y = -1;
+		chunk->lower_rect_coords.x = -1;
+		chunk->lower_rect_coords.x = -1;
+		return;
+	}
+
 	int min_x = INT_MAX;
 	int min_y = INT_MAX;
 	int max_x = INT_MIN;
 	int max_y = INT_MIN;
-	uint8_t is_dirty = 0;
 
+	const std::vector<Material*>& mat_list = chunk->active_list;
+	std::vector<PhysicsMaterialMoveData>& move_data = chunk->move_data;
 
-	for(auto i = chunk->update_list.begin(); i != chunk->update_list.end(); i ++)
+	for(size_t i = 0; i < mat_list.size(); i ++)
 	{
-		Material* mat = (*i);
-		if(material_props[mat->material]->property & Properties::STATIC && !(material_props[mat->material]->property & Properties::SHORT_LIVED) && mat->state != BURNING)
-		{
-			continue;
-		}
+		Material* mat = mat_list[i];
 
 		int mat_x = mat->position.x;
 		int mat_y = mat->position.y;
@@ -578,7 +572,6 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			min_y = std::min(mat_y, min_y);
 			max_y = std::max(mat_y, max_y);
 			max_x = std::max(mat_x, max_x);
-			is_dirty = 1;
 			continue;
 		}
 		if(material_props[mat->material]->property & Properties::SHORT_LIVED)
@@ -587,7 +580,6 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 			min_y = std::min(mat_y, min_y);
 			max_y = std::max(mat_y, max_y);
 			max_x = std::max(mat_x, max_x);
-			is_dirty = 1;
 			continue;
 		}
 		if(material_props[mat->material]->property & Properties::PHYSICS)
@@ -597,6 +589,11 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 
 			if(update_pos.x != -1)
 			{
+				move_data.emplace_back();
+				move_data.back().org_material = mat;
+				move_data.back().hit_material = hit_mat;
+				move_data.back().new_pos = update_pos;
+
 				min_x = std::min(mat_x, min_x);
 				min_y = std::min(mat_y, min_y);
 
@@ -608,136 +605,66 @@ void ChunkHandler::make_dirty_rect(Chunk* chunk)
 
 				max_x = std::max(update_pos.x, max_x);
 				max_y = std::max(update_pos.y, max_y);
-				is_dirty = 1;
-			}
-			else if(mat->phys_state != RESTING)
-			{
-				min_x = std::min(mat_x, min_x);
-				min_y = std::min(mat_y, min_y);
-
-				max_x = std::max(mat_x, max_x);
-				max_y = std::max(mat_y, max_y);
-
-				is_dirty = 1;
-			}
-			else if(material_props[mat->material]->mat_state == LIQUID && mat->phys_state == RESTING)
-			{
-				Material* left =  in_world(mat_x - 1, mat_y)? get_material(mat_x - 1, mat_y): element_updater.dummy_material;
-				Material* right = in_world(mat_x + 1, mat_y)? get_material(mat_x + 1, mat_y): element_updater.dummy_material;
-
-				if(!left)
-				{
-					min_x = std::min(min_x, mat_x - 1);
-					min_y = std::min(min_y, mat_y);
-
-					max_x = std::max(max_x, mat_x);
-					max_y = std::max(max_y, mat_y);
-					is_dirty = 1;
-				}
-				if(!right)
-				{
-					min_x = std::min(min_x, mat_x);
-					min_y = std::min(min_y, mat_y);
-
-					max_x = std::max(max_x, mat_x + 1);
-					max_y = std::max(max_y, mat_y);
-					is_dirty = 1;
-				}
 			}
 		}
-		else
-		{
-			std::vector<vector2> rxn_coords = get_rxn_coord(mat);
-			if(rxn_coords.size() > 0)
-			{
-				vector2 rxn_coord = rxn_coords[rand() % rxn_coords.size()];
-				min_x = std::min(rxn_coord.x, min_x);
-				min_y = std::min(rxn_coord.y, min_y);
-				max_y = std::max(rxn_coord.y,  max_y);
-				max_x = std::max(rxn_coord.x, max_x);
-				is_dirty = 1;
-			}
-		}
-
 	}
 
-	if(is_dirty)
-	{
-		vector2 upper_rect {min_x, min_y};
-		vector2 lower_rect {max_x, max_y};
-		modify_rect(chunk, &upper_rect, &lower_rect); 
-		chunk->asleep = 0;
-	}
-	else{
-		std::cout << "Chunk " << print_pos(chunk->coords.x, chunk->coords.y) << " is asleep." << std::endl;
-		chunk->asleep = 1;
-		chunk->d_upper.x = -1;
-		chunk->d_upper.y = -1;
-		chunk->d_lower.x = -1;
-		chunk->d_lower.y = -1;
-	}
+	vector2 upper_rect {min_x, min_y};
+	vector2 lower_rect {max_x, max_y};
+	modify_rect(chunk, &upper_rect, &lower_rect); 
 }
+
 void ChunkHandler::update_chunk(Chunk* chunk, const float dT)
 {
-	assert(chunks.find(chunk->coords) != chunks.end());
 
-	if(chunk->asleep == 1)
+	if(chunk->active_list.size() == 0)
 	{
 		return;
 	}
 
+	const std::vector<PhysicsMaterialMoveData>& move_data = chunk->move_data;
 	make_dirty_rect(chunk);
 
-	if(chunk->d_upper.x == -1)
+	for(size_t i = 0; i < move_data.size(); i ++)
 	{
-		chunk->asleep = 1;
-		return;
-	}
-
-	int begin = index(chunk->d_upper.x, chunk->d_upper.y), end = index(chunk->d_lower.x, chunk->d_lower.y) + 1;
-	for(size_t i = begin; i < end; i ++)
-	{
-		Material* mat = chunk->materials[i];
-		if(mat == nullptr || material_props[mat->material]->property & Properties::STATIC)
-		{
-			continue;
-		}
+		const PhysicsMaterialMoveData* phys_move_data = &move_data[i];
+		Material* mat = phys_move_data->org_material;
 
 		if(mat->material == SAND)
 		{
-			element_updater.update_sand(mat, dT);
+			element_updater.update_sand(dT, phys_move_data);
 		}
 		else if(mat->material == WATER)
 		{
-			element_updater.update_water(mat, dT);
+			element_updater.update_water(dT, phys_move_data);
 		}
 		else if(mat->material == SMOKE)
 		{
-			element_updater.update_smoke(mat, dT);
+			element_updater.update_smoke(dT, phys_move_data);
 		}
 		else if(mat->material == FIRE)
 		{
-			element_updater.update_fire(mat, dT);
+			element_updater.update_fire(dT, phys_move_data);
 		}
 		else if(mat->material == WOOD)
 		{
-			element_updater.update_wood(mat, dT);
+			element_updater.update_wood(dT, phys_move_data);
 		}
 		else if(mat->material == ACID)
 		{
-			element_updater.update_acid(mat, dT);
+			element_updater.update_acid(dT, phys_move_data);
 		}
 		else if(mat->material == OIL)
 		{
-			element_updater.update_oil(mat, dT);
+			element_updater.update_oil(dT, phys_move_data);
 		}
 		else if(mat->material == FLAMMABLE_GAS)
 		{
-			element_updater.update_flammable_gas(mat, dT);
+			element_updater.update_flammable_gas(dT, phys_move_data);
 		}
 
-
 	}
+
 }
 
 
@@ -787,17 +714,17 @@ void ChunkHandler::add_materials(const std::vector<Material*>& material)
 			Chunk* chunk = init_chunk(x, y);
 			mat->chunk_index = 0;
 			assert(chunk != nullptr);
-			chunk->update_list.push_back(mat);
-			chunk->materials[index(x, y)] = mat;
+			chunk->active_list.push_back(mat);
+			chunk->grid[index(x, y)] = mat;
 			chunk->num_materials ++;
 		}
 		else if(!get_material(x, y))
 		{
 			mat->chunk_index = chunks[chunk_pos]->num_materials;
-			chunks[chunk_pos]->asleep = 0;
-			chunks[chunk_pos]->update_list.push_back(mat);
-			assert(chunks[chunk_pos]->update_list[mat->chunk_index] == mat);
-			chunks[chunk_pos]->materials[index(x, y)] = mat;
+			//chunks[chunk_pos]->asleep = 0;
+			chunks[chunk_pos]->active_list.push_back(mat);
+			assert(chunks[chunk_pos]->active_list[mat->chunk_index] == mat);
+			chunks[chunk_pos]->grid[index(x, y)] = mat;
 			chunks[chunk_pos]->num_materials ++;
 		}
 		else
@@ -884,23 +811,23 @@ void ChunkHandler::draw_chunks_to_texture(Renderer* render, bool debug_mode)
 			chunk_model = glm::translate(chunk_model, glm::vec3(start_coords.x, start_coords.y, 0.0f));
 			chunk_model = glm::scale(chunk_model, glm::vec3(chunk_width, chunk_height, 1.0f));
 
-			if(chunk->d_lower.x != - 1)
+			if(chunk->lower_rect_coords.x != - 1)
 			{
-				dirty_model = glm::translate(dirty_model, glm::vec3(chunk->d_upper.x, chunk->d_upper.y, 0.0f));
-				dirty_model = glm::scale(dirty_model, glm::vec3((chunk->d_lower.x - chunk->d_upper.x), (chunk->d_lower.y - chunk->d_upper.y), 1.0f));
+				dirty_model = glm::translate(dirty_model, glm::vec3(chunk->upper_rect_coords.x, chunk->upper_rect_coords.y, 0.0f));
+				dirty_model = glm::scale(dirty_model, glm::vec3((chunk->lower_rect_coords.x - chunk->upper_rect_coords.x), (chunk->lower_rect_coords.y - chunk->upper_rect_coords.y), 1.0f));
 			}
 
 			chunk_rect_transforms.push_back(chunk_model);
 			debug_rect_transforms.push_back(dirty_model);
 		}
 
-		for(size_t j = 0; j < chunk->update_list.size(); j ++)
+		for(size_t j = 0; j < chunk->active_list.size(); j ++)
 		{
-			tex_offsets.push_back(chunk->update_list[j]->tex_offset);
+			tex_offsets.push_back(chunk->active_list[j]->tex_offset);
 
 			glm::mat4 model = glm::mat4(1.0f);
 
-			model = glm::translate(model, glm::vec3(chunk->update_list[j]->position.x, chunk->update_list[j]->position.y, 0.0f));
+			model = glm::translate(model, glm::vec3(chunk->active_list[j]->position.x, chunk->active_list[j]->position.y, 0.0f));
 			model = glm::scale(model, glm::vec3(size.x, size.y, 1.0f));
 			transforms.push_back(model);
 
@@ -920,8 +847,8 @@ ChunkHandler::~ChunkHandler()
 	chunks.clear();
 	for(int i = 0; i < iter_chunks.size(); i ++)
 	{
-		delete[] iter_chunks[i]->materials;
-		iter_chunks[i]->update_list.clear();
+		delete[] iter_chunks[i]->grid;
+		iter_chunks[i]->active_list.clear();
 	}
 }
 

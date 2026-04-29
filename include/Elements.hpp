@@ -3,8 +3,9 @@
 #define ELEMENTS_H
 
 #include "Material.hpp"
+#include "ChunkInfo.hpp"
 #include <random>
-#define ELEMENT_UPDATE_ARGS Material* material, const float dT
+
 class ChunkHandler;
 
 class Elements{
@@ -28,9 +29,10 @@ public:
 		rounded_velocity->x = actual_velocity->x >= 0? static_cast<int>(actual_velocity->x + 0.5f): static_cast<int>(actual_velocity->x - 0.5f);
 		rounded_velocity->y = actual_velocity->y >= 0? static_cast<int>(actual_velocity->y + 0.5f): static_cast<int>(actual_velocity->y - 0.5f);
 	}
-	inline void clamp(float& value, float episolon, float clamp_value)
+	inline void clamp(float& value, const float max_value, const float min_value)
 	{
-		value = std::abs(value - clamp_value) < episolon? clamp_value: value;
+		value = value > max_value? max_value: value;
+		value = value < min_value? min_value: value;
 	}
 	inline bool prob_gen(float chance)
 	{
@@ -43,19 +45,20 @@ public:
 	};
 
 	vector2 pos_update(vector2* pos, fvector2* velocity, Material** colliding_material);
-	vector2 solid_physics_update(ELEMENT_UPDATE_ARGS, float inertia_chance, float friction_constant);
-	vector2 fluid_physics_update(ELEMENT_UPDATE_ARGS, int fluid_spread, float air_resistance);
-	vector2 gas_physics_update(ELEMENT_UPDATE_ARGS);
 
-	void update_sand(ELEMENT_UPDATE_ARGS);
-	void update_water(ELEMENT_UPDATE_ARGS);
-	void update_acid(ELEMENT_UPDATE_ARGS);
-	void update_wood(ELEMENT_UPDATE_ARGS);
-	void update_fire(ELEMENT_UPDATE_ARGS);
-	void update_smoke(ELEMENT_UPDATE_ARGS);
-	void update_stone(ELEMENT_UPDATE_ARGS);
-	void update_oil(ELEMENT_UPDATE_ARGS);
-	void update_flammable_gas(ELEMENT_UPDATE_ARGS);
+	vector2 solid_physics_update(const PhysicsMaterialMoveData* phys_move_data, const float dT, const float inertia_chance, const float friction_constant);
+	vector2 fluid_physics_update(const PhysicsMaterialMoveData* phys_move_data, const float dT, const int fluid_spread, const float air_resistance);
+	vector2 gas_physics_update(const PhysicsMaterialMoveData* phys_move_data, const float dT);
+
+	void update_sand(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_water(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_acid(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_wood(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_fire(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_smoke(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_stone(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_oil(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_flammable_gas(const float dT, const PhysicsMaterialMoveData* phys_move_data);
 
 	void init(ChunkHandler* handler, int wW, int wH);
 };

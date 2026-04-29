@@ -1,6 +1,5 @@
 #include <cassert> 
 #include <World.hpp>
-#include <iostream>
 #include <glad/glad.h>
 #include <Renderer.hpp>
 #include <glm/glm.hpp>

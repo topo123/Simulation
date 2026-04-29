@@ -284,9 +284,9 @@ void World::load_world(std::string name)
 void World::save_world(std::string name)
 {
 	int counter = 0;
-	for(ChunkHandler::Chunk* chunk: handler.iter_chunks)
+	for(Chunk* chunk: handler.iter_chunks)
 	{
-		for(Material* material: chunk->update_list)
+		for(Material* material: chunk->active_list)
 		{
 			save_materials.push_back({material->position.x, material->position.y, material->velocity.x, material->velocity.y, material->material});
 			counter ++;

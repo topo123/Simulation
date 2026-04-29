@@ -40,7 +40,7 @@ target_include_directories(render PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_include_directories(world PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 target_include_directories(input PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(input PRIVATE glad)
+target_link_libraries(input PRIVATE glad glfw)
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/test")
 
