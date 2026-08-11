@@ -10,7 +10,6 @@ void World::init_world(unsigned int x_chunks, unsigned int y_chunks, int wW, int
 	world_height = wH;
 
 	arena = material_arena;
-	std::cout << "Initializing Render data\n";
 	render.init_render_data(wW, wH);
 	handler.init_chunk_handler(x_chunks, y_chunks, wW, wH, material_arena);
 }
@@ -19,7 +18,6 @@ void World::init_world(unsigned int x_chunks, unsigned int y_chunks, int wW, int
 void World::create_materials(const vector2& old_center, const vector2& new_center, const vector2& draw_size, const MatType type)
 {
 
-	std::cout << "Must spawn materials from " << handler.print_pos(old_center.x, old_center.y) << " to " << handler.print_pos(new_center.x, new_center.y) << std::endl;
 
 
 	if(draw_size.x % 2 == 0 || draw_size.y % 2 == 0)
@@ -95,7 +93,7 @@ void World::flame_brush(const int num_materials, int lower_x, int lower_y, int u
 
 		if(rand() % 2 == 1 && filled_pos.find(pos) == filled_pos.end()){
 			materials.push_back(static_cast<Material*>(allocate(arena)));
-			handler.set_material_properties(materials.back(), FIRE, &pos);
+			handler.set_material_properties(materials.back(), MatType::FIRE, &pos);
 			counter ++;
 			flame_counter ++;
 			filled_pos.insert(pos);
@@ -219,30 +217,34 @@ void World::delete_materials(int center_x, int center_y, int width, int height)
 
 
 
-void World::update_world(const float dT)
+void World::update_world(const float dT, SimState state)
 {
-	ChunkHandler::Chunk* chunk;
-	ChunkHandler::Chunk* delete_chunk; 
+	Chunk* chunk;
+	Chunk* delete_chunk; 
 
-	for(size_t i = 0; i < handler.iter_chunks.size(); i ++)
-	{
-		chunk = handler.iter_chunks[i];
-		assert(handler.chunks.find(chunk->coords) != handler.chunks.end());
-		handler.update_chunk(chunk, dT);
-		handler.commit_changes();
-		if(chunk->num_materials == 0){
-			handler.delete_chunks.push_back(chunk);
-			handler.chunks.erase(chunk->coords);
-			handler.iter_chunks[i] = handler.iter_chunks.back();
-			handler.iter_chunks.pop_back();
-			i --;
+	if(state != PAUSED) {
+		for(size_t i = 0; i < handler.iter_chunks.size(); i ++)
+		{
+			chunk = handler.iter_chunks[i];
+			assert(handler.chunks.find(chunk->coords) != handler.chunks.end());
+			handler.update_chunk(chunk, dT);
+			if(chunk->num_materials == 0){
+				handler.delete_chunks.push_back(chunk);
+				handler.chunks.erase(chunk->coords);
+				handler.iter_chunks[i] = handler.iter_chunks.back();
+				handler.iter_chunks.pop_back();
+				i --;
+			}
 		}
 	}
 
+	handler.commit_changes();
+
 	for(size_t i = 0; i < handler.delete_chunks.size(); i ++){
 		delete_chunk = handler.delete_chunks[i];
-		delete_chunk->update_list.clear();
-		delete[] delete_chunk->materials;
+		delete_chunk->asleep_list.clear();
+		delete_chunk->active_list.clear();
+		delete[] delete_chunk->grid;
 		delete delete_chunk;
 	}
 
@@ -272,8 +274,8 @@ void World::load_world(std::string name)
 		sim_read.read(reinterpret_cast<char*>(&material->position.y), sizeof(int));
 		sim_read.read(reinterpret_cast<char*>(&material->velocity.x), sizeof(float));
 		sim_read.read(reinterpret_cast<char*>(&material->velocity.y), sizeof(float));
-		sim_read.read(reinterpret_cast<char*>(&material->material), sizeof(uint32_t));
-		handler.set_material_properties(material, material->material, &material->position);
+		sim_read.read(reinterpret_cast<char*>(&material->mat_id), sizeof(uint32_t));
+		handler.set_material_properties(material, material->mat_id, &material->position);
 		materials.push_back(material);
 	}
 
@@ -288,7 +290,11 @@ void World::save_world(std::string name)
 	{
 		for(Material* material: chunk->active_list)
 		{
-			save_materials.push_back({material->position.x, material->position.y, material->velocity.x, material->velocity.y, material->material});
+			save_materials.push_back({material->position.x, material->position.y, material->velocity.x, material->velocity.y, material->mat_id});
+			counter ++;
+		}
+		for(Material* material: chunk->asleep_list){
+			save_materials.push_back({material->position.x, material->position.y, material->velocity.x, material->velocity.y, material->mat_id});
 			counter ++;
 		}
 	}
@@ -302,7 +308,7 @@ void World::save_world(std::string name)
 		sim_write.write(reinterpret_cast<const char*>(&mat.y_pos), sizeof(int));
 		sim_write.write(reinterpret_cast<const char*>(&mat.x_vel), sizeof(float));
 		sim_write.write(reinterpret_cast<const char*>(&mat.y_vel), sizeof(float));
-		sim_write.write(reinterpret_cast<const char*>(&mat.material_type), sizeof(uint32_t));
+		sim_write.write(reinterpret_cast<const char*>(&mat.mat_id), sizeof(uint32_t));
 	}
 
 	sim_write.close();

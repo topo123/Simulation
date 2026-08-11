@@ -16,7 +16,6 @@ public:
 	std::bernoulli_distribution random_generator;
 
 	ChunkHandler* handler;
-	Material* dummy_material;
 	int world_height;
 	int world_width;
 
@@ -46,19 +45,20 @@ public:
 
 	vector2 pos_update(vector2* pos, fvector2* velocity, Material** colliding_material);
 
-	vector2 solid_physics_update(const PhysicsMaterialMoveData* phys_move_data, const float dT, const float inertia_chance, const float friction_constant);
-	vector2 fluid_physics_update(const PhysicsMaterialMoveData* phys_move_data, const float dT, const int fluid_spread, const float air_resistance);
-	vector2 gas_physics_update(const PhysicsMaterialMoveData* phys_move_data, const float dT);
+	void solid_physics_update(Material* material, const float dT, const float friction_const, const float air_resistance_const, const float collision_conserve);
+	void solid_collision_resolver(Material* material, Material* collided_material, vector2& new_pos, const float inertia_chance, const float collision_conserve);
+	void fluid_physics_update(Material* material, const float dT, const int fluid_spread, const float air_resistance);
+	void gas_physics_update(Material* material, const float dT);
 
-	void update_sand(const float dT, const PhysicsMaterialMoveData* phys_move_data);
-	void update_water(const float dT, const PhysicsMaterialMoveData* phys_move_data);
-	void update_acid(const float dT, const PhysicsMaterialMoveData* phys_move_data);
-	void update_wood(const float dT, const PhysicsMaterialMoveData* phys_move_data);
-	void update_fire(const float dT, const PhysicsMaterialMoveData* phys_move_data);
-	void update_smoke(const float dT, const PhysicsMaterialMoveData* phys_move_data);
-	void update_stone(const float dT, const PhysicsMaterialMoveData* phys_move_data);
-	void update_oil(const float dT, const PhysicsMaterialMoveData* phys_move_data);
-	void update_flammable_gas(const float dT, const PhysicsMaterialMoveData* phys_move_data);
+	void update_sand(const float dT, Material* material);
+	void update_water(const float dT, Material* material);
+	void update_acid(const float dT, Material* material);
+	void update_wood(const float dT, Material* material);
+	void update_fire(const float dT, Material* material);
+	void update_smoke(const float dT, Material* material);
+	void update_stone(const float dT, Material* material);
+	void update_oil(const float dT, Material* material);
+	void update_flammable_gas(const float dT, Material* material);
 
 	void init(ChunkHandler* handler, int wW, int wH);
 };

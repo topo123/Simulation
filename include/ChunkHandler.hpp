@@ -24,12 +24,13 @@ class ChunkHandler
 
 public:
 
-	std::random_device rd;
-	std::mt19937 gen;
 	int chunk_width;
 	int chunk_height;
 
-	std::vector<Move> move_list;
+	std::random_device rng;
+	std::mt19937 shuffler;
+
+	std::vector<Material*> move_list;
 	std::vector<Move> swap_list;
 	std::vector<Material*> trash_materials;
 	std::vector<Chunk*> add_materials_list;
@@ -65,9 +66,36 @@ public:
 		return chunk != nullptr? chunk->grid[index(x, y)]: nullptr;
 	};
 
+	inline Chunk* get_chunk(int x, int y){
+		vector2 chunk_coords {x/chunk_width, y/chunk_height};
+		if(chunk_coords.x >= x_chunks || chunk_coords.x < 0 || chunk_coords.y >= y_chunks || chunk_coords.y < 0) return nullptr;
+		auto it = chunks.find(chunk_coords);
+		return it != chunks.end()? it->second: nullptr;
+	};
+
+	inline Neighbors get_neighbors(vector2& org_pos, vector2& new_pos) {
+		return { 	
+			.org_up = get_material(org_pos.x, org_pos.y - 1),
+			.org_down = get_material(org_pos.x, org_pos.y + 1),
+			.org_right = get_material(org_pos.x + 1, org_pos.y),
+			.org_left = get_material(org_pos.x - 1, org_pos.y),
+			.org_dleft = get_material(org_pos.x - 1, org_pos.y + 1),
+			.org_dright = get_material(org_pos.x + 1, org_pos.y + 1),
+			.new_down = get_material(new_pos.x, new_pos.y + 1),
+			.new_right = get_material(new_pos.x + 1, new_pos.y),
+			.new_left = get_material(new_pos.x - 1, new_pos.y),
+			.new_dleft = get_material(new_pos.x - 1, new_pos.y + 1),
+			.new_dright = get_material(new_pos.x + 1, new_pos.y + 1)
+		};
+	}
+
 	bool in_anim_list(Material* material);
 	bool can_react(Material* m1, Material* m2);
+	bool is_asleep(Material* material);
+	bool is_active(Material* material);
+	
 
+	void debug_asleep_materials();
 	void debug_mat(Material* mat);
 	void set_material_properties(Material* material, MatType type, vector2* pos);
 	void destroy_material(Material* material);
@@ -78,18 +106,14 @@ public:
 	void add_materials(const std::vector<Material*>& materials);
 	void update_chunk(Chunk* chunk, const float dT);
 	void draw_chunks_to_texture(Renderer* render, bool debug_mode);
-	void move_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
-	void swap_material(Chunk* chunk, Material* material, vector2* old_pos, vector2* new_pos);
+	void move_material(Chunk* chunk, Material* material);
+	void swap_material(Chunk* chunk, Material* material, Move* move);
 	void remove_from_anim_list(Material* material);
 	void wake_up_neighbor_chunks(Chunk* chunk);
 	void init_material_props();
+	void set_active(Material* material);
+	void set_asleep(Material* material);
 	
-	inline Chunk* get_chunk(int x, int y){
-		vector2 chunk_coords {x/chunk_width, y/chunk_height};
-		if(chunk_coords.x >= x_chunks || chunk_coords.x < 0 || chunk_coords.y >= y_chunks || chunk_coords.y < 0) return nullptr;
-		auto it = chunks.find(chunk_coords);
-		return it != chunks.end()? it->second: nullptr;
-	};
 	Chunk* init_chunk(int mat_x, int mat_y);
 
 	inline bool in_world(int x, int y){

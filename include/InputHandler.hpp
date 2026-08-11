@@ -46,6 +46,7 @@ struct AppInfo {
 AppInfo* init_sim_info(GLFWwindow* window, Arena* arena);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void window_size_callback(GLFWwindow* window, int width, int height);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

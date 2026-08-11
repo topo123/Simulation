@@ -12,13 +12,13 @@ AppInfo* init_sim_info(GLFWwindow* window, Arena* arena)
 	AppInfo* glfw_info = (AppInfo*)allocate(arena, sizeof(AppInfo));
 
 	glfw_info->mouse_data = (Mouse*)allocate(arena, sizeof(Mouse));
-	glfw_info->mouse_data->scale = {1.5, 1.5};
+	glfw_info->mouse_data->scale = {1, 1};
 	glfw_info->mouse_data->draw_size = {3, 3};
 	glfw_info->mouse_data->index = 0;
 	glfw_info->sim_state = RUNNING;
 	glfw_info->draw_state = DEBUG_DRAW;
 	glfw_info->win_state = NORMAL_WIN;
-	glfw_info->mat = SAND;
+	glfw_info->mat = MatType::SAND;
 
 	glfwSetWindowUserPointer(window, glfw_info);
 
@@ -124,7 +124,13 @@ void cursor_pos_callback(GLFWwindow* window, double xPos, double yPos)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	std::cout << "Framebuffer width and height: " << width << ", " << height << std::endl;
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, 800, 600);
+}
+
+void window_size_callback(GLFWwindow* window, int width, int height)
+{
+	std::cout << "Window width and height: " << width << ", " << height << std::endl;
+	glfwSetWindowSize(window, 800, 600);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -173,7 +179,6 @@ void process_input(AppInfo* app_info, World& world)
 	}
 	else if(mouse->state == LEFT_PRESSED)
 	{
-		std::cout << "Left button pushed but not dragged\n";
 		world.create_materials(mouse->curr_mouse_pos, mouse->curr_mouse_pos, mouse->draw_size, app_info->mat);
 	}
 

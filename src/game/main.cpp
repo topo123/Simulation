@@ -21,11 +21,12 @@ int init_window(GLFWwindow** window)
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);		
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 	glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 	glfwWindowHint(GLFW_FLOATING, GLFW_TRUE);
-	//glfwWindowHint(GLFW_SCALE_FRAMEBUFFER, GLFW_FALSE);
+	glfwWindowHint(GLFW_SCALE_FRAMEBUFFER, GLFW_FALSE);
 
 
 #ifdef __APPLE__
@@ -58,10 +59,13 @@ int init_window(GLFWwindow** window)
 	}
 
 	glfwSetFramebufferSizeCallback(*window, framebuffer_size_callback);
+	glfwSetWindowSizeCallback(*window, window_size_callback);
 	glfwSetMouseButtonCallback(*window, mouse_button_callback);
 	glfwSetCursorPosCallback(*window, cursor_pos_callback);
 	glfwSetKeyCallback(*window, key_callback);
 	
+	glfwSetWindowSize(*window, 800, 600);
+
 	return 0;
 }
 
@@ -69,6 +73,7 @@ void game_loop(std::string name)
 {
 	GLFWwindow* window = nullptr;
 	int success = init_window(&window);
+
 	assert(success == 0);
 
 	Arena app_info_arena;
@@ -76,7 +81,7 @@ void game_loop(std::string name)
 
 	PoolArena* arena = init_pool(800 * 600 + 1, sizeof(Material));
 	World world;
-	world.init_world(10, 10, 1200, 955, arena);
+	world.init_world(10, 10, 800, 600, arena);
 	
 	if(name != "")
 	{
@@ -87,7 +92,7 @@ void game_loop(std::string name)
 	const unsigned int FPS = 60;
 	const float FPS_SLICE = 1.0f/FPS;
 	const float UPS_SLICE = 1.0f/UPS;
-	const unsigned int MAX_FRAME_SKIPS = 2;
+	const unsigned int MAX_FRAME_SKIPS = 5;
 	unsigned int frames_skip = 0;
 
 	double elapsed_time;
@@ -98,23 +103,29 @@ void game_loop(std::string name)
 	double frame_accumulator = 0;
 
 	double nowTime = glfwGetTime();
+	double debug_time = 0;
+	double debug_frame = 0;
+	double debug_update = 0;
 
 	while(!glfwWindowShouldClose(window))
 	{
 		process_input(app_info, world);
 
 		elapsed_time = glfwGetTime() - nowTime;
-		nowTime = glfwGetTime();
+
+		debug_time += elapsed_time;
 		time_accumulator +=  elapsed_time;
 		frame_accumulator += elapsed_time;
 
-		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS && app_info->sim_state != PAUSED)
+		nowTime = glfwGetTime();
+
+		while(time_accumulator >= UPS_SLICE && frames_skip < MAX_FRAME_SKIPS)
 		{
-			world.update_world(UPS_SLICE);
+			world.update_world(UPS_SLICE, app_info->sim_state);
 			time_accumulator -= UPS_SLICE;
+			debug_update += UPS_SLICE;
 			frames_skip ++;
 		}
-		frames_skip = 0;
 
 		if(app_info->draw_state == DEBUG_DRAW)
 		{
@@ -125,6 +136,19 @@ void game_loop(std::string name)
 		}
 
 		frame_accumulator -= FPS_SLICE;
+		debug_frame += FPS_SLICE;
+
+		if(debug_time >= 1.0)
+		{
+			long frames = ((debug_frame * 60.0f)/debug_time);
+			long updates = ((debug_update * 120.0f)/debug_time);
+			std::cout << "FPS: " << frames << " | UPS: " << updates << '\n';
+			debug_update = 0;
+			debug_frame = 0;
+			debug_time = 0;
+		}
+
+		frames_skip = 0;
 		glfwSwapBuffers(window);
 	}
 

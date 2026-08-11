@@ -20,6 +20,17 @@ std::ostream& operator<<(std::ostream& os, const vector2& p) {
 	return os << "(" << p.x << ", " << p.y << ")";
 }
 
+void set_material_attributes(Material* mat, vector2 position, vector2 velocity, MatType material_type)
+{
+	mat->position.x = position.x;
+	mat->position.y = position.y;
+	
+	mat->velocity.x = velocity.x;
+	mat->velocity.y = velocity.y;
+
+	mat->mat_id = material_type;
+}
+
 void init_test()
 {
 	arena = init_pool(800 * 800, sizeof(Material));
@@ -33,17 +44,47 @@ void set_material_props(Material* material, vector2 position, fvector2 velocity)
 	material->velocity = velocity;
 }
 
-TEST_CASE("Velocity collisions", "[velocity]")
+TEST_CASE("Bresenham Move Test", "[bresenham]")
 {
 	std::vector<Material*> materials;
 	init_test();
 
-	vector2 inital {10, 1};
-	fvector2 vec {-1.0, 0.0f};
-	vector2 final = updater->pos_update(&inital, &vec, nullptr);
+	vector2 initial_pos {0, 0};
+	fvector2 velocity{0, 10.0f};
+	vector2 final_pos{0 , 10};
 
-	REQUIRE(final.x == 9);
-	REQUIRE(final.y == 1);
+	Material* colliding_material;
 
+	updater->pos_update(&initial_pos, &velocity, &colliding_material);
+
+	REQUIRE(final_pos.x == 0);
+	REQUIRE(final_pos.y == 10);
+}
+
+
+TEST_CASE("Bresenham Collision Test", "[bresenham]")
+{
+	std::vector<Material*> materials;
+	init_test();
+
+	Material* mat1 = static_cast<Material*>(allocate(arena));
+	Material* mat2 = static_cast<Material*>(allocate(arena));
+
+	set_material_attributes(mat1, {0, 0}, {0, 10}, MatType::SAND);
+	set_material_attributes(mat2, {0, 5}, {0, 0}, MatType::SAND);
+
+	materials.push_back(mat1);
+	materials.push_back(mat2);
+
+	handler.add_materials(materials);
+
+	handler.update_chunk(handler.add_materials_list[0], 0.5);
+
+
+	REQUIRE(mat1->position.x == mat2->position.x);
+	REQUIRE(mat1->position.y == mat2->position.y - 1);
+
+	free_arena(arena);
+	materials.clear();
 }
 

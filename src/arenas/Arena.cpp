@@ -9,6 +9,7 @@
 #endif
 #include <cassert>
 #include <Arena.hpp>
+
 Arena* init_arena(size_t arena_size)
 {
 	Arena* arena = new Arena();

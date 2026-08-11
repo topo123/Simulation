@@ -5,26 +5,6 @@
 
 #define NUM_COLORS 12.0f
 
-
-enum Properties{
-	STATIC = 0b00000000,
-	DOWN = 0b00000001,
-	DOWN_SIDE = 0b00000010,
-	SIDE = 0b00000100,
-	UP = 0b00001000,
-	UP_SIDE = 0b00010000,
-	SHORT_LIVED = 0b00100000,
-	PHYSICS = 0b01000000
-};
-
-enum ReactionDirection{
-	RDOWN = 0b10000,
-	RUP = 0b01000,
-	RSIDE = 0b00100,
-	AROUND = 0b00010,
-	RNONE = 0b00001
-};
-
 enum ReactionProperties{
 	ACID_DESTROY = 0b1000,
 	DISPLACIBLE = 0b0100,
@@ -50,7 +30,6 @@ struct vector2
 {
 	int x {0};
 	int y {0};
-
 
 	bool operator<(const vector2& other) const {
 		if(x != other.x)
@@ -79,7 +58,7 @@ struct vector_hash
 	}
 };
 
-enum MatType: uint8_t
+enum class MatType: uint32_t
 {
 	SAND = 0,
 	WATER = 1,
@@ -92,6 +71,20 @@ enum MatType: uint8_t
 	OIL = 8,
 	FLAMMABLE_GAS = 9,
 	NONE = 10
+};
+
+enum class MatterState: int32_t {
+	STATIC_SOLID,
+	DYNAMIC_SOLID,
+	LIQUID,
+	GAS,
+	ENERGY
+};
+
+enum class ReactionState: int32_t {
+	BURNING,
+	NORMAL,
+	CONDUCTING
 };
 
 struct MatTexCoords
@@ -115,50 +108,41 @@ struct serialized_material{
 	int y_pos;
 	float x_vel;
 	float y_vel;
-	uint32_t material_type;
-};
-enum MaterialState{
-	SOLID,
-	LIQUID,
-	GAS,
-	ENERGY
-};
-
-enum State{
-	BURNING,
-	NORMAL,
-	CONDUCTING
-};
-
-enum PhysicsState{
-	FREE_FALLING, 
-	SLIDING, 
-	RESTING
+	MatType mat_id;
 };
 
 struct MaterialProps
 {
-	Properties property;
+	MatterState mat_state;
 	ReactionProperties reaction;
-	ReactionDirection reaction_direction;
 	int health;
 	float tex_offset;
-	MaterialState mat_state;
 };
 
 struct Material
 {
 	vector2 position {0, 0};
 	fvector2 velocity {0, 0};
-	MatType material = MatType::NONE;
-	State state = State::NORMAL;
-	PhysicsState phys_state = PhysicsState::FREE_FALLING;
-	unsigned int frames_rest;
+	MatType mat_id = MatType::NONE;
+	ReactionState state = ReactionState::NORMAL;
 	float tex_offset;
 	int health;
-	int chunk_index;
+	int frames_rest {0};
 };
 
+struct Neighbors
+{
+	Material* org_up;
+	Material* org_down;
+	Material* org_right;
+	Material* org_left;
+	Material* org_dleft;
+	Material* org_dright;
 
-
+	Material* new_down;
+	Material* new_right;
+	Material* new_left;
+	Material* new_dleft;
+	Material* new_dright;
+};
 #endif

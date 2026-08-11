@@ -2,7 +2,7 @@
 #include <ChunkHandler.hpp>
 #include <Renderer.hpp>
 #include <Material.hpp>
-#include <iostream>
+#include <States.hpp>
 
 class World
 {
@@ -54,7 +54,7 @@ public:
 
 		assert(num_rows > 0 && num_cols > 0);
 
-		if(spawn_type == FIRE){
+		if(spawn_type == MatType::FIRE){
 			flame_brush(num_rows * num_cols, rX, bY, lX, tY, materials); 
 		}
 		else{
@@ -66,7 +66,7 @@ public:
 	void create_materials(const vector2& old_center, const vector2& new_center, const vector2& draw_size, const MatType type);
 	void delete_materials(int center_x, int center_y, int width, int height);
 	void init_world(unsigned int x_chunks, unsigned int y_chunks, int world_width, int world_height, PoolArena* material_arena);
-	void update_world(const float dT);
+	void update_world(const float dT, SimState state);
 	void draw_world(bool debug_mode);
 	void flame_brush(const int num_materials, int lower_x, int lower_y, int upper_x, int upper_y, std::vector<Material*>& materials);
 	void regular_brush(const int num_materials, int lower_x, int lower_y, int upper_x, MatType type, std::vector<Material*>& materials);
